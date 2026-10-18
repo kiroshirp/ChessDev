@@ -1,0 +1,23 @@
+{
+  "name": "@pixelspace/world-server",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=../../.env src/index.ts",
+    "build": "node ../../scripts/build-backend.mjs world-server",
+    "start": "node --env-file-if-exists=../../.env dist/index.js"
+  },
+  "dependencies": {
+    "@colyseus/core": "0.18.19",
+    "@colyseus/schema": "5.0.41",
+    "@colyseus/ws-transport": "0.18.4",
+    "@pixelspace/auth": "0.1.0",
+    "@pixelspace/chess-core": "0.1.0",
+    "@pixelspace/map-engine": "0.0.1",
+    "@pixelspace/realtime": "0.1.0",
+    "@pixelspace/shared": "0.0.1",
+    "@pixelspace/world-engine": "0.0.1",
+    "@types/express": "5.0.6"
+  }
+}

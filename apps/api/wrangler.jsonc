@@ -1,0 +1,19 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "pixelspace-api",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-18",
+  "vars": {
+    "ENVIRONMENT": "production",
+    "FRONTEND_URL": "https://kiroshirp.github.io/PixelSpace/",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "pixelspace",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "../../packages/database/d1-migrations",
+    },
+  ],
+  "triggers": { "crons": ["0 3 * * *"] },
+}

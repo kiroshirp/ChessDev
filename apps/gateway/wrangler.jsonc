@@ -1,0 +1,21 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "pixelspace-world",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-18",
+  "vars": {
+    "API_URL": "https://REPLACE-WITH-YOUR-API.workers.dev",
+    "FRONTEND_ORIGIN": "https://kiroshirp.github.io",
+  },
+  "containers": [
+    {
+      "class_name": "WorldContainer",
+      "image": "../../infrastructure/world.Dockerfile",
+      "image_build_context": "../..",
+      "max_instances": 1,
+      "instance_type": "lite",
+    },
+  ],
+  "durable_objects": { "bindings": [{ "name": "WORLD", "class_name": "WorldContainer" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["WorldContainer"] }],
+}

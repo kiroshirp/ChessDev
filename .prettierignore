@@ -1,0 +1,10 @@
+package-lock.json
+docs-specification.es.md
+packages/database/migrations/
+packages/database/d1-migrations/
+**/dist/
+node_modules/
+test-results/
+playwright-report/
+**/.wrangler/
+**/dist-worker/

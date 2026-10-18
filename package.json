@@ -1,0 +1,52 @@
+{
+  "name": "pixelspace",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=24 <25",
+    "npm": ">=11 <12"
+  },
+  "packageManager": "npm@11.9.0",
+  "scripts": {
+    "dev": "concurrently -k -n web,api,world \"npm run dev -w @pixelspace/web\" \"npm run dev -w @pixelspace/api\" \"npm run dev -w @pixelspace/world-server\"",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "tsc --noEmit && tsc -p apps/gateway/tsconfig.json",
+    "lint": "eslint . && node scripts/check-boundaries.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:pages": "node scripts/check-pages.mjs",
+    "check": "npm run typecheck && npm run lint && npm test && npm run build",
+    "db:generate": "drizzle-kit generate --config=packages/database/drizzle.config.ts",
+    "db:migrate": "tsx packages/database/src/migrate.ts",
+    "worker:check": "wrangler deploy --config apps/api/wrangler.jsonc --dry-run --outdir apps/api/dist-worker"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261018.1",
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.64.1",
+    "@types/express": "5.0.6",
+    "@types/node": "24.19.2",
+    "concurrently": "10.0.6",
+    "drizzle-kit": "0.31.11",
+    "esbuild": "0.28.2",
+    "eslint": "10.13.0",
+    "prettier": "3.9.10",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.2",
+    "vitest": "5.0.5",
+    "wrangler": "4.151.1"
+  },
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "0.25.12"
+    }
+  }
+}

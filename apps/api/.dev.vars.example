@@ -1,0 +1,7 @@
+# Set values locally or use `wrangler secret put NAME --config apps/api/wrangler.jsonc`.
+# Never put these values in VITE_* or commit .dev.vars.
+DISCORD_CLIENT_ID=
+DISCORD_CLIENT_SECRET=
+DISCORD_REDIRECT_URI=
+WORLD_SECRET=
+INTERNAL_SECRET=
