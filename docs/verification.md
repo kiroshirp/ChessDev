@@ -32,3 +32,11 @@ GitHub Pages se cambió mediante su configuración oficial a Source: GitHub Acti
 - Presencia/partidas activas son efímeras; resultados terminados persistidos, sin cola duradera durante caída del proceso.
 
 Consulta `deployment.md` para habilitar Discord/Cloudflare y repetir las pruebas entre equipos. La página de GitHub Pages puede publicarse como acceso en preparación sin afirmar que su backend ya está disponible.
+
+## Adaptación posterior a Firebase / Cloud Run
+
+El usuario confirma Colyseus en Firebase y base de datos en Cloudflare. Consola del proyecto `pixelspace-93730` comprobada con sesión del propietario: plan **Spark**, sin Cloud Run desplegado. No se vinculó facturación ni se cambió a Blaze. Se preparó Cloud Build (solo construcción), exclusiones de subida y documentación; Docker/Cloud Build remoto continúan sin ejecutar.
+
+El bundle de Colyseus admite `PORT` y enlace público en producción. `npm run test:cloudrun` aprobado: proceso Node real en modo producción, puerto dinámico prioritario frente a WORLD_PORT, salud 200, origen ajeno 403 y acceso sin ticket rechazado. TypeScript, lint, 23 pruebas unitarias, 3 pruebas E2E, build y formato aprobados después del cambio. El propietario completó la creación de la aplicación PixelSpace en Discord durante la sesión. Callback y secreto de producción siguen pendientes; no se ha probado OAuth real.
+
+Restricción posterior: iniciar sin cargos. Blaze no autorizado y Cloud Run aplazado. Blueprint Render Free preparado, **no desplegado ni validado contra la API de Render**; requiere aceptar proveedor/configurar acceso. No se ha creado infraestructura de pago. Client ID público Discord comprobado y registrado en Wrangler; secreto no leído ni modificado.

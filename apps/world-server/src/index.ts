@@ -59,5 +59,9 @@ const server = new Server({
   },
 });
 server.define('academy', AcademyRoom);
-await server.listen(Number(process.env.WORLD_PORT ?? 2567), process.env.HOST ?? '127.0.0.1');
-console.log(`PixelSpace Colyseus: ${process.env.WORLD_PORT ?? 2567}`);
+// Cloud Run injects PORT. Local development retains WORLD_PORT and loopback.
+const port = Number(process.env.PORT ?? process.env.WORLD_PORT ?? 2567);
+if (!Number.isInteger(port) || port < 1 || port > 65535)
+  throw new Error('PORT/WORLD_PORT must be a valid TCP port');
+await server.listen(port, process.env.HOST || (production ? '0.0.0.0' : '127.0.0.1'));
+console.log(`PixelSpace Colyseus: ${port}`);

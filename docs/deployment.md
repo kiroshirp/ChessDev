@@ -1,5 +1,7 @@
 # Arranque y despliegue
 
+**Restricción vigente: empezar sin cargos.** No activar Blaze ni Containers. Cloud Run queda aplazado; alternativa Render Free preparada y pendiente de aceptar/configurar en [free-hosting.md](free-hosting.md). Las instrucciones de infraestructuras pagadas más abajo son referencia, no autorización para ejecutarlas.
+
 ## Local
 
 Node 24.x, npm 11.x. `npm ci`, copiar `.env.example` a `.env` sin sobrescribir configuración previa y `npm run dev`. Web 5173, API 3001, Colyseus 2567. La API local migra `.local/pixelspace.sqlite` automáticamente. En dos navegadores independientes, nombres locales diferentes y mesa 01. Ctrl+C detiene los procesos. `npm run build` genera frontend y ESM de los procesos Node; `npm start -w @pixelspace/api` y `@pixelspace/world-server` prueban los builds.
@@ -10,7 +12,7 @@ Docker opcional: `docker compose up --build`. Volumen `local_data` conserva SQLi
 
 Repositorio `kiroshirp/PixelSpace`. Source: **GitHub Actions**. `pages.yml` compila con base `/PixelSpace/`, ejecuta comprobaciones y prueba el acceso público antes de publicar `apps/web/dist`. Se activa en push a main o manualmente. El frontend sin backend muestra academia en preparación y obliga a autenticación; nunca conecta visitantes a localhost.
 
-Variables del repositorio (no secretos): `VITE_API_URL=https://TU-API.workers.dev`, `VITE_WORLD_URL=https://TU-WORLD.workers.dev`. Se leen al compilar; después de modificarlas hay que repetir publicación. Secretos Discord, D1 o HMAC nunca llevan prefijo VITE.
+Variables del repositorio (no secretos): `VITE_API_URL=https://TU-API.workers.dev`, `VITE_WORLD_URL=https://TU-SERVICIO.run.app` (URL real de Cloud Run). Se leen al compilar; después de modificarlas hay que repetir publicación. Secretos Discord, D1 o HMAC nunca llevan prefijo VITE.
 
 Prueba de subruta local en PowerShell:
 
@@ -34,7 +36,13 @@ npm run test:pages
 
 OAuth se comprobó con proveedor simulado, no con credenciales reales. El scope solicitado es `identify`. La primera autorización crea la cuenta por Discord ID único; los accesos siguientes actualizan el nombre y conservan identidad/resultados.
 
-## Cloudflare Containers / Colyseus
+## Firebase / Cloud Run para Colyseus — destino elegido
+
+Proyecto `pixelspace-93730`, manteniendo API y D1 en Cloudflare. Seguir [firebase-colyseus.md](firebase-colyseus.md) para construcción remota, Secret Manager, parámetros del servicio y verificación. La consola muestra plan Spark: requiere facturación vinculada/Blaze antes de usar Cloud Run. No se ha cambiado el plan ni desplegado este backend. Alta de Discord explicada paso a paso en [discord-setup.md](discord-setup.md); el callback sigue siendo el Worker de API.
+
+## Cloudflare Containers / Colyseus — alternativa anterior
+
+No es el destino seleccionado. Se conserva la configuración sin desplegar como alternativa; no ejecutar estos pasos para el despliegue en Firebase.
 
 Requiere cuenta con Containers habilitado y Docker para construir la imagen. **Containers tiene coste; no se contrató ningún plan ni se crearon recursos facturables en esta sesión.**
 

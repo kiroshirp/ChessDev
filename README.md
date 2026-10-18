@@ -1,5 +1,7 @@
 # PixelSpace
 
+Primera publicación sin cargos: frontend en Pages; Worker/D1 deben usar planes gratuitos. Colyseus en Firebase está aplazado porque requiere Blaze. Alternativa Render Free preparada, pendiente de aceptar/desplegar: `docs/free-hosting.md`.
+
 Academia virtual pixel art con **movimiento y ajedrez multijugador reales**. React, TypeScript, Vite, Phaser, Node y Colyseus. Documento funcional permanente: [especificación maestra](docs-specification.es.md); decisiones posteriores: [decisions](docs/decisions.md). `AGENTS.md` indica a futuros colaboradores cómo aplicarlos.
 
 ## Primera versión técnica
@@ -10,7 +12,7 @@ Academia virtual pixel art con **movimiento y ajedrez multijugador reales**. Rea
 - Mesa 01 interactiva: dos asientos, espectadores, jugadas legales en servidor mediante chess.js, promoción seleccionable, rendición, tablas, PGN y resultados persistidos.
 - Partidas **amistosas, sin reloj ni rating**. No motor de análisis, torneos, pagos, chat, audio o editor.
 - Público: acceso obligatorio con Discord. La primera autorización crea la cuenta; no hay contraseña PixelSpace. Perfil privado, sesiones revocables y solo scope `identify`.
-- Destino: GitHub Pages para frontend; Cloudflare Worker + D1 para cuentas/resultados; Cloudflare Containers para Node/Colyseus.
+- Destino: GitHub Pages para frontend; Cloudflare Worker + D1 para cuentas/resultados; Cloud Run del proyecto Firebase `pixelspace-93730` para Node/Colyseus. Cloud Run pendiente de facturación Blaze y despliegue; ver `docs/firebase-colyseus.md`. Discord se configura siguiendo `docs/discord-setup.md`.
 
 El aula y la cafetería son zonas navegables; no se simulan clases o comunicación. La segunda mesa es decorativa y no muestra una interacción disponible.
 
@@ -51,6 +53,6 @@ GitHub Pages publica solo archivos estáticos. Configura `VITE_API_URL` y `VITE_
 
 ## Módulos
 
-`shared` contratos; `map-engine` mapas genéricos; `world-engine` simulación; `realtime` estado sincronizado; `auth` identidad y tickets; `database` D1/SQLite; `chess-core` reglas y estados de la mesa. La representación está en `apps/web`, OAuth en `apps/api`, networking en `apps/world-server` y adaptación Containers en `apps/gateway`. El núcleo de mapas/movimiento no depende de chess.js.
+`shared` contratos; `map-engine` mapas genéricos; `world-engine` simulación; `realtime` estado sincronizado; `auth` identidad y tickets; `database` D1/SQLite; `chess-core` reglas y estados de la mesa. La representación está en `apps/web`, OAuth en `apps/api` y networking en `apps/world-server`. `apps/gateway` conserva la alternativa anterior de Containers, sin desplegar. El núcleo de mapas/movimiento no depende de chess.js.
 
 Licencia original MIT conservada. [Procedencia de gráficos y bibliotecas](docs/asset-licenses.md). El proyecto aún no es una beta de producción: consulta los límites de seguridad, persistencia y despliegue antes de admitir usuarios reales.

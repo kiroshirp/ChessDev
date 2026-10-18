@@ -1,0 +1,16 @@
+# Build only: deployment and billing remain separate, explicit steps.
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - infrastructure/world.Dockerfile
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/world:${_TAG}
+      - .
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/world:${_TAG}
+substitutions:
+  _REGION: europe-west1
+  _REPOSITORY: pixelspace
+  _TAG: manual

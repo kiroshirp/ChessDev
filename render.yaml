@@ -1,0 +1,25 @@
+# Proposed no-billing alternative. Never change plan to a paid tier implicitly.
+services:
+  - type: web
+    name: pixelspace-world
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: main
+    dockerfilePath: ./infrastructure/world.Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: off
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: ALLOWED_ORIGINS
+        value: https://kiroshirp.github.io
+      - key: API_URL
+        sync: false
+      - key: WORLD_SECRET
+        sync: false
+      - key: INTERNAL_SECRET
+        sync: false

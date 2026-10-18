@@ -5,6 +5,7 @@
   "compatibility_date": "2026-10-18",
   "vars": {
     "ENVIRONMENT": "production",
+    "DISCORD_CLIENT_ID": "1561437644226044104",
     "FRONTEND_URL": "https://kiroshirp.github.io/PixelSpace/",
   },
   "d1_databases": [

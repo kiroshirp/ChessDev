@@ -1,12 +1,14 @@
 # Arquitectura de la primera versión técnica
 
+Restricción vigente: comenzar sin cargos. Cloud Run se aplaza porque Firebase está en Spark y requiere Blaze; Render Free es la alternativa preparada, aún pendiente de aceptar y desplegar. El diagrama refleja el destino Firebase previamente elegido, no un backend ya publicado. API/usuarios/resultados siguen en Cloudflare.
+
 El documento maestro permanece en `docs-specification.es.md`. Las modificaciones solicitadas el 18 de octubre de 2026 figuran en `decisions.md`: Discord obligatorio y base de datos Cloudflare.
 
 ```text
 GitHub Pages — React / Vite / Phaser
   ├─ HTTPS → API Worker — Discord OAuth / sesiones / Cloudflare D1
-  └─ HTTPS/WSS → Gateway Worker → Cloudflare Container — Node / Colyseus
-                                      └─ HTTPS privado autenticado → API Worker
+  └─ HTTPS/WSS → Cloud Run (Firebase pixelspace-93730) — Node / Colyseus
+                         └─ HTTPS con secreto interno → API Worker
 ```
 
 La misma API se ejecuta localmente detrás de Fastify usando SQLite de Node 24 como adaptador. Comparte repositorio SQL parametrizado y migraciones con D1. `node:sqlite` es experimental y se utiliza solo para desarrollo/pruebas; la API de producción es un Worker con binding D1.
@@ -34,6 +36,6 @@ D1 sustituye al PostgreSQL propuesto inicialmente por preferencia explícita del
 
 ## Alcance operativo
 
-Un Container estable (`academy-v1`), máximo de una instancia configurada, salas Colyseus de 24 plazas como límite técnico **sin prueba de carga**. Los resultados terminados se guardan en D1; partidas en curso y presencia están en memoria y se pierden al reiniciar el proceso. No se anuncia tolerancia a fallos o escalabilidad.
+Destino Cloud Run, una instancia y una revisión recibiendo tráfico como configuración inicial, salas Colyseus de 24 plazas como límite técnico **sin prueba de carga**. El gateway de Cloudflare Containers se conserva como alternativa anterior, sin desplegar. La base de datos continúa en D1 por confirmación del usuario. Los resultados terminados se guardan en D1; partidas en curso y presencia están en memoria y se pierden al reiniciar el proceso. Cloud Run limita la duración de cada WebSocket; hay que verificar reconexión remota y vaciar salas antes de desplegar revisiones nuevas. No se anuncia tolerancia a fallos o escalabilidad. Infraestructura y costes pendientes en `firebase-colyseus.md`.
 
 Fuentes primarias: [Colyseus](https://docs.colyseus.io/server), [reconexión](https://docs.colyseus.io/room/reconnection), [Discord OAuth](https://docs.discord.com/developers/topics/oauth2), [Cloudflare Containers](https://developers.cloudflare.com/containers/api/container-class/), [D1](https://developers.cloudflare.com/d1/), [chess.js](https://github.com/jhlywa/chess.js). Versiones/licencias comprobadas además mediante npm y ejecución local.
