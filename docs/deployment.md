@@ -2,6 +2,8 @@
 
 **Restricción vigente: empezar sin cargos.** No activar Blaze ni Containers. Cloud Run queda aplazado; alternativa Render Free preparada y pendiente de aceptar/configurar en [free-hosting.md](free-hosting.md). Las instrucciones de infraestructuras pagadas más abajo son referencia, no autorización para ejecutarlas.
 
+Destino Render Free ya aceptado. URLs asignadas: API `https://pixelspace-api.kiroshirp.workers.dev`, Colyseus `https://pixelspace-world.onrender.com`. D1 remota y secretos configurados. El estado de pruebas/publicación real se mantiene en [verification.md](verification.md). No volver a crear la base ni resetear secretos al seguir esta guía.
+
 ## Local
 
 Node 24.x, npm 11.x. `npm ci`, copiar `.env.example` a `.env` sin sobrescribir configuración previa y `npm run dev`. Web 5173, API 3001, Colyseus 2567. La API local migra `.local/pixelspace.sqlite` automáticamente. En dos navegadores independientes, nombres locales diferentes y mesa 01. Ctrl+C detiene los procesos. `npm run build` genera frontend y ESM de los procesos Node; `npm start -w @pixelspace/api` y `@pixelspace/world-server` prueban los builds.

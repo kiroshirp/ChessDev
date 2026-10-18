@@ -48,8 +48,12 @@ try {
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('response', (response) => {
-    if (response.status() >= 400) errors.push(`${response.status()} ${response.url()}`);
+    // A fresh browser has no account session; this is the expected API response.
+    const anonymous = response.status() === 401 && new URL(response.url()).pathname === '/auth/me';
+    if (response.status() >= 400 && !anonymous)
+      errors.push(`${response.status()} ${response.url()}`);
   });
+  page.on('requestfailed', (request) => errors.push(`Failed request: ${request.url()}`));
   await page.goto(url);
   await expect(
     page.getByRole('heading', { name: 'Tu próxima jugada empieza aquí.' }),

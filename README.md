@@ -1,6 +1,6 @@
 # PixelSpace
 
-Primera publicación sin cargos: frontend en Pages; Worker/D1 deben usar planes gratuitos. Colyseus en Firebase está aplazado porque requiere Blaze. Alternativa Render Free preparada, pendiente de aceptar/desplegar: `docs/free-hosting.md`.
+Primera publicación sin cargos: frontend en Pages, API/cuentas en Cloudflare Workers Free + D1 y Colyseus ya desplegado en Render Free. Firebase está aplazado porque requiere Blaze. Configuración y límites: `docs/free-hosting.md`; resultados comprobados y pendientes: `docs/verification.md`.
 
 Academia virtual pixel art con **movimiento y ajedrez multijugador reales**. React, TypeScript, Vite, Phaser, Node y Colyseus. Documento funcional permanente: [especificación maestra](docs-specification.es.md); decisiones posteriores: [decisions](docs/decisions.md). `AGENTS.md` indica a futuros colaboradores cómo aplicarlos.
 

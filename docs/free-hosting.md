@@ -2,7 +2,7 @@
 
 El usuario pide explícitamente no recibir cargos todavía. **No vincular tarjeta, activar Blaze, contratar Containers ni seleccionar instancias de pago.** Firebase `pixelspace-93730` permanece en Spark; el despliegue de Colyseus allí se aplaza porque Cloud Run requiere facturación vinculada.
 
-Propuesta pendiente de aceptar: GitHub Pages para la web, Cloudflare Workers Free + D1 Free para API/cuentas/resultados y **Render Free para Colyseus**. No hace falta contratar una base en Render. No se ha creado ni desplegado el servicio Render.
+Arquitectura aceptada por el usuario: GitHub Pages para la web, Cloudflare Workers Free + D1 Free para API/cuentas/resultados y **Render Free para Colyseus**. El usuario autoriza publicar cuando esté todo conectado. No hace falta contratar una base en Render. El estado real de despliegue se registra en `verification.md`.
 
 ## Configuración preparada
 

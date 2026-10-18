@@ -6,13 +6,14 @@
   "vars": {
     "ENVIRONMENT": "production",
     "DISCORD_CLIENT_ID": "1561437644226044104",
+    "DISCORD_REDIRECT_URI": "https://pixelspace-api.kiroshirp.workers.dev/auth/discord/callback",
     "FRONTEND_URL": "https://kiroshirp.github.io/PixelSpace/",
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "pixelspace",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "55457fe3-9dc9-4b2d-9282-e029ed09c16d",
       "migrations_dir": "../../packages/database/d1-migrations",
     },
   ],

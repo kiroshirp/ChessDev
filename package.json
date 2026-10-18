@@ -23,6 +23,7 @@
     "test:e2e": "playwright test",
     "test:pages": "node scripts/check-pages.mjs",
     "test:cloudrun": "node scripts/check-cloudrun.mjs",
+    "test:public": "node scripts/check-public.mjs",
     "check": "npm run typecheck && npm run lint && npm test && npm run build",
     "db:generate": "drizzle-kit generate --config=packages/database/drizzle.config.ts",
     "db:migrate": "tsx packages/database/src/migrate.ts",

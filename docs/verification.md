@@ -1,5 +1,13 @@
 # Informe de verificación — primera versión técnica
 
+## Estado más reciente del despliegue
+
+18 de octubre de 2026: usuario confirma Render Free y publicación de Pages al completar la configuración. Cloudflare Workers Free comprobado en panel (plan actual 0 USD), D1 `pixelspace` creada en WEUR (`55457fe3-9dc9-4b2d-9282-e029ed09c16d`), ambas migraciones remotas aplicadas. API publicada en `https://pixelspace-api.kiroshirp.workers.dev`, con Discord Client ID y callback reales; los tres secretos están guardados en Cloudflare y solo las claves internas compartidas en Render. Copia temporal del secreto Discord eliminada tras confirmar su almacenamiento.
+
+Render `pixelspace-world`, servicio `srv-dbagmmu7bikc73eilhn0`, plan Free 0 USD, Frankfurt, Docker, health `/health`, despliegues automáticos desactivados. Primer despliegue `dep-dbagmnm7bikc73eiljs0` desde `a551281` finalizado Live. `/health` público 200 en `https://pixelspace-world.onrender.com`. Ticket firmado de diagnóstico con sesión inexistente rechazado como `SESSION_EXPIRED`: comprueba comunicación Render → Worker → D1, sin crear usuarios de prueba ni abrir acceso de desarrollo.
+
+Discord callback guardado y confirmado por el portal: `https://pixelspace-api.kiroshirp.workers.dev/auth/discord/callback`. Aún pendiente prueba de autorización Discord real y partida remota con dos cuentas. Desde la red local el dominio workers.dev agota el tiempo de conexión; Render sí consigue acceder. Se añaden comprobaciones públicas en GitHub Actions antes de publicar el frontend conectado. Las verificaciones históricas de abajo distinguen pruebas locales de despliegues pendientes en aquel momento.
+
 Fecha: 18 de octubre de 2026. Windows, Node 24.14.0, npm 11.9.0 y Git. Documento maestro conservado y registrado como instrucción permanente en `AGENTS.md`.
 
 ## Resultados comprobados
