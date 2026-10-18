@@ -16,7 +16,11 @@ Fecha: 18 de octubre de 2026. Windows, Node 24.14.0, npm 11.9.0 y Git. Documento
 
 Resultado final local: **23 pruebas unitarias aprobadas en 4 archivos; 3 pruebas de integración/E2E aprobadas**. TypeScript, lint, build de web/ambos servidores y Worker dry-run correctos. `npm ci` limpio correcto tras detener el runtime que mantenía un archivo abierto; npm informa **0 vulnerabilidades**. El build público `/PixelSpace/` supera la comprobación de assets y acceso obligatorio sin vía de desarrollo. Phaser queda separado en un bloque de ~319 KB gzip; bundle de interfaz/networking/tablero ~141 KB gzip. No se oculta el aviso de tamaño de Phaser.
 
-Los primeros E2E detectaron una incompatibilidad real al copiar posiciones con accesores de Schema; el motor ahora copia explícitamente x/y y cuenta con regresión. El test de salida se corrigió para volver al panel de mundo antes de consultar su lista de presencia. GitHub Pages se cambió mediante su configuración oficial a Source: GitHub Actions; publicación del código validado en curso al cerrar este informe local.
+Los primeros E2E detectaron una incompatibilidad real al copiar posiciones con accesores de Schema; el motor ahora copia explícitamente x/y y cuenta con regresión. El test de salida se corrigió para volver al panel de mundo antes de consultar su lista de presencia.
+
+## Publicación comprobada
+
+GitHub Pages se cambió mediante su configuración oficial a Source: GitHub Actions. El commit `7db37f7` se subió a `kiroshirp/PixelSpace` y finalizaron correctamente tanto [CI](https://github.com/kiroshirp/PixelSpace/actions/runs/39150344451) como [build y deploy de Pages](https://github.com/kiroshirp/PixelSpace/actions/runs/39150344531). Se abrió la [URL pública](https://kiroshirp.github.io/PixelSpace/) y se comprobó el frontend nuevo, con acceso en preparación y sin entrada de desarrollo. La guía se puede consultar sin autenticar; la sección de cuenta solo aparece tras iniciar sesión.
 
 ## Lo que no se ha probado o activado
 

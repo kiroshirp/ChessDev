@@ -171,18 +171,20 @@ function App() {
         </a>
         <div className="workspace-label">PIXELSPACE CHESS ACADEMY</div>
         <nav aria-label={t.academy}>
-          {(['world', 'guide', 'account'] as const).map((item, i) => (
-            <button
-              key={item}
-              ref={item === 'world' ? worldButton : undefined}
-              className={`nav-item ${tab === item ? 'selected' : ''}`}
-              aria-current={tab === item ? 'page' : undefined}
-              onClick={() => setTab(item)}
-            >
-              <span aria-hidden="true">{['▦', '☷', '♙'][i]}</span>
-              {t[item]}
-            </button>
-          ))}
+          {(['world', 'guide', 'account'] as const)
+            .filter((item) => item !== 'account' || user !== null)
+            .map((item, i) => (
+              <button
+                key={item}
+                ref={item === 'world' ? worldButton : undefined}
+                className={`nav-item ${tab === item ? 'selected' : ''}`}
+                aria-current={tab === item ? 'page' : undefined}
+                onClick={() => setTab(item)}
+              >
+                <span aria-hidden="true">{['▦', '☷', '♙'][i]}</span>
+                {t[item]}
+              </button>
+            ))}
         </nav>
         <div className="sidebar-note">
           <span className="tiny-label">{t.phase}</span>
@@ -242,7 +244,7 @@ function App() {
               {friendlyError(error)}
             </p>
           )}
-          {!user ? (
+          {!user && tab !== 'guide' ? (
             <section className="login-card">
               <div className="academy-emblem" aria-hidden="true">
                 ♜
@@ -291,7 +293,7 @@ function App() {
             <section className="documentation-panel">
               <h2>{t.accountTitle}</h2>
               <p>
-                {user.name} · {user.development ? t.devBadge : 'Discord'}
+                {user?.name} · {user?.development ? t.devBadge : 'Discord'}
               </p>
               <p>{t.accountText}</p>
               <h3>{t.recent}</h3>
