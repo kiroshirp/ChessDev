@@ -45,16 +45,29 @@ try {
   assert(ready, `Preview failed to start: ${output}`);
   browser = await chromium.launch();
   const page = await browser.newPage();
+  // Serve the built assets locally under the real production origin. The API
+  // must continue rejecting localhost; a production smoke must exercise CORS
+  // with the same origin visitors use on Pages.
+  const publicUrl = 'https://kiroshirp.github.io/PixelSpace/';
+  await page.route(`${publicUrl}**`, async (route) => {
+    const asset = new URL(route.request().url());
+    const response = await route.fetch({
+      url: `http://127.0.0.1:4175${asset.pathname}${asset.search}`,
+    });
+    await route.fulfill({ response });
+  });
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('response', (response) => {
     // A fresh browser has no account session; this is the expected API response.
-    const anonymous = response.status() === 401 && new URL(response.url()).pathname === '/auth/me';
+    const anonymous =
+      response.status() === 401 &&
+      ['/auth/me', '/api/auth/me'].includes(new URL(response.url()).pathname);
     if (response.status() >= 400 && !anonymous)
       errors.push(`${response.status()} ${response.url()}`);
   });
   page.on('requestfailed', (request) => errors.push(`Failed request: ${request.url()}`));
-  await page.goto(url);
+  await page.goto(publicUrl);
   await expect(page.getByRole('heading', { name: 'Tu próxima buena jugada.' })).toBeVisible();
   await expect(page.locator('.hero')).toBeVisible();
   await expect(page.locator('canvas')).toHaveCount(0);
@@ -65,6 +78,7 @@ try {
   await expect(page.getByRole('button', { name: 'Abrir mesa compartida' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Tablero de análisis', exact: true }).click();
   await expect(page.getByRole('group', { name: 'Tablero de ajedrez' })).toBeVisible();
+  await page.waitForLoadState('networkidle', { timeout: 95000 });
   assert.deepEqual(errors, []);
   console.log(
     'ChessDev production smoke: /PixelSpace/, assets, Lichess required for online play, local analysis, no development bypass and no browser errors: OK',
