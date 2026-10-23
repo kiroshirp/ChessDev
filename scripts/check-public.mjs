@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { URL } from 'node:url';
+import { randomBytes, createHash } from 'node:crypto';
 
 const origin = 'https://kiroshirp.github.io';
 const api = process.env.VITE_API_URL;
@@ -28,17 +29,21 @@ assert.equal(caps.lichess, true, 'Configure Lichess before publishing connected 
 console.log(`Lichess configured: ${caps.lichess === true}`);
 assert.equal('discord' in caps, false);
 const authorization = await request(api, '/auth/lichess', 302);
-const target = new URL(authorization.headers.get('location'));
+assert.equal(
+  authorization.headers.get('location'),
+  'https://kiroshirp.github.io/ChessDev/?signin=lichess',
+);
+const state = randomBytes(32).toString('base64url');
+const challenge = createHash('sha256').update(randomBytes(32)).digest('base64url');
+const start = await request(api, '/auth/lichess/start', 200, { state, challenge });
+const target = new URL((await start.json()).url);
 assert.equal(target.origin + target.pathname, 'https://lichess.org/oauth');
 assert.equal(target.searchParams.get('client_id'), 'chessdev');
 assert.equal(target.searchParams.get('code_challenge_method'), 'S256');
 assert.match(target.searchParams.get('code_challenge'), /^[A-Za-z0-9_-]{43}$/);
 assert.equal(target.searchParams.get('scope'), '');
-assert.equal(
-  target.searchParams.get('redirect_uri'),
-  `${api.replace(/\/$/, '')}/auth/lichess/callback`,
-);
-assert(authorization.headers.get('set-cookie').includes('Path=/api/auth; HttpOnly; SameSite=Lax;'));
+assert.equal(target.searchParams.get('redirect_uri'), 'https://kiroshirp.github.io/ChessDev/');
+assert.equal(start.headers.get('set-cookie'), null);
 await request(api, '/auth/discord', 404);
 await request(api, '/internal/session', 404, {});
 await request(api, '/auth/me', 401);

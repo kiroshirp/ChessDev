@@ -2,7 +2,7 @@
 
 Cloudflare D1 (SQLite), esquema Drizzle en `packages/database/src/schema.ts`, SQL y snapshots en `d1-migrations`. Identidad propia UUID y `provider_id` único con prefijo `lichess:`; los nombres no vinculan cuentas. Perfiles privados y marca de desarrollo.
 
-Sesiones de ocho horas con hash SHA-256 de token; estado OAuth ligado a verifier con cinco minutos; códigos locales de retorno de un uso y 60 segundos. El token Lichess solo se usa para obtener `/api/account`, se descarta y no se persiste. Los contadores de peticiones son atómicos y caducan. El cron limpia los registros expirados.
+Sesiones de ocho horas con hash SHA-256 de token; estado OAuth ligado al challenge del verifier con quince minutos; códigos locales de retorno de un uso y 60 segundos. El token Lichess solo se usa para obtener `/api/account`, se descarta y no se persiste. Los contadores de peticiones son atómicos y caducan. El cron limpia los registros expirados.
 
 `chess_results` conserva UUID de partida, jugadores, PGN, resultado, motivo y fecha. Guardado idempotente; el servidor reintenta mientras vive la sala. No hay cola duradera para fallos del proceso ni restauración de partidas activas.
 

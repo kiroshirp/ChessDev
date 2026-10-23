@@ -1,8 +1,8 @@
 # Seguridad
 
-OAuth Lichess con PKCE S256, state aleatorio ligado al verifier y al navegador mediante cookie HttpOnly, consumido una sola vez en D1. Scopes vacíos; acceso a identidad básica. Redirecciones a URLs fijas. El token de Lichess se usa para consultar `/api/account` y se descarta sin almacenarlo. [Detalle](lichess-setup.md).
+OAuth Lichess con PKCE S256, state y verifier transitorios ligados a la pestaña mediante sessionStorage (15 minutos) y challenge consumido una sola vez en D1. OAuth no depende de cookies entre dominios. Scopes vacíos; acceso a identidad básica. Redirecciones a URLs fijas. El token de Lichess se usa para consultar `/api/account` y se descarta sin almacenarlo. [Detalle](lichess-setup.md).
 
-Sesiones propias de ChessDev de ocho horas, solo hashes en D1, revocables. Cookies HttpOnly y Secure en HTTPS. El token local adicional reside únicamente en memoria para navegadores que bloqueen cookies entre dominios. Nunca guardar credenciales en localStorage; ese almacenamiento solo contiene estudios y progreso. Tras recargar con cookies bloqueadas puede ser necesario acceder de nuevo con Lichess.
+Sesiones propias de ChessDev de ocho horas, solo hashes en D1, revocables. Cookies HttpOnly y Secure en HTTPS. El token local adicional reside únicamente en memoria para navegadores que bloqueen cookies entre dominios. Nunca guardar tokens de cuenta o sesión en localStorage/sessionStorage. localStorage solo contiene estudios y progreso; sessionStorage contiene únicamente state/verifier PKCE transitorios, eliminados al volver. Tras recargar con cookies bloqueadas puede ser necesario acceder de nuevo con Lichess.
 
 API con validación de origen, límite por ruta, cuerpos acotados y secretos internos. Proxy Render limitado a rutas públicas explícitas. Tickets cortos para el servidor, sesión activa y rechazo de identidades de desarrollo en producción. Servidor autoritativo para asientos, turnos, jugadas y resultados. Sin confianza en coordenadas o identidades enviadas por clientes.
 

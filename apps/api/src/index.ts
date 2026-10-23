@@ -19,7 +19,7 @@ const app = buildApp({
     process.env.INTERNAL_SECRET ?? 'pixelspace-local-internal-secret-change-in-production',
   LICHESS_CLIENT_ID: process.env.LICHESS_CLIENT_ID ?? 'chessdev',
   LICHESS_REDIRECT_URI:
-    process.env.LICHESS_REDIRECT_URI ?? 'http://127.0.0.1:3001/auth/lichess/callback',
+    process.env.LICHESS_REDIRECT_URI ?? process.env.FRONTEND_URL ?? 'http://127.0.0.1:5173/',
 });
 app.addHook('onClose', async () => db.close());
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => void app.close());

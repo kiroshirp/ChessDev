@@ -12,7 +12,9 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
   const init: RequestInit = {
     credentials: 'include',
     headers,
-    signal: AbortSignal.timeout(path === '/capabilities' ? 90000 : 10000),
+    signal: AbortSignal.timeout(
+      ['/capabilities', '/auth/lichess/start'].includes(path) ? 90000 : 15000,
+    ),
   };
   if (body !== undefined) {
     init.method = 'POST';

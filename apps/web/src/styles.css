@@ -1721,3 +1721,546 @@ textarea {
     opacity: 0.17;
   }
 }
+/* One original vector set across boards, illustrations and navigation. */
+.chess-piece {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: var(--piece-fill);
+  stroke: var(--piece-stroke);
+  pointer-events: none;
+}
+.piece-w {
+  --piece-fill: #f4f0e5;
+  --piece-stroke: #292d2b;
+}
+.piece-b {
+  --piece-fill: #303533;
+  --piece-stroke: #f1eadb;
+}
+.piece-eye {
+  fill: var(--piece-stroke);
+  stroke: none;
+}
+.square > .chess-piece,
+.chess-board button > .chess-piece {
+  width: 88%;
+  height: 88%;
+  filter: drop-shadow(0 1px 1px #0003);
+}
+.square.legal:has(.chess-piece):after {
+  width: 85%;
+  height: 85%;
+  border: 4px solid #394c4688;
+  background: none;
+}
+.chess-board {
+  grid-template-rows: repeat(8, minmax(0, 1fr));
+}
+.chess-board button {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+.brand-mark > .chess-piece {
+  width: 30px;
+  height: 34px;
+}
+.brand-mark .piece-b {
+  --piece-stroke: #eeede6;
+}
+.nav-icon > .chess-piece {
+  width: 22px;
+  height: 25px;
+}
+.avatar > .chess-piece,
+.profile-dot > .chess-piece {
+  width: 25px;
+  height: 28px;
+}
+.feature-icon > .chess-piece {
+  width: 29px;
+  height: 32px;
+}
+.hero-rook {
+  width: 200px;
+  height: 235px;
+  font-size: 0;
+  text-shadow: none;
+  filter: drop-shadow(8px 12px 0 #111015);
+}
+.course-art > span:first-child {
+  display: block;
+  width: 105px;
+  height: 115px;
+  font-size: 0;
+  filter: drop-shadow(5px 6px 0 #131a1655);
+}
+.account-illustration > span {
+  display: block;
+  width: 200px;
+  height: 220px;
+  font-size: 0;
+  filter: drop-shadow(9px 9px 0 #121018);
+}
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.footer-brand > .chess-piece {
+  width: 18px;
+  height: 21px;
+}
+.mobile-brand {
+  display: none;
+}
+@media (min-width: 1500px) {
+  .hero-rook {
+    width: 230px;
+    height: 270px;
+  }
+}
+@media (max-width: 850px) {
+  .account-illustration > span {
+    width: 125px;
+    height: 140px;
+  }
+}
+@media (max-width: 600px) {
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #17171cf5;
+    height: 66px;
+    padding: env(safe-area-inset-top) 16px 0;
+  }
+  .breadcrumb {
+    gap: 10px;
+    min-width: 0;
+    font-size: 12px;
+  }
+  .desktop-breadcrumb,
+  .breadcrumb > span:not([class]) {
+    display: none;
+  }
+  .mobile-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    font-family: Manrope, sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.7px;
+    white-space: nowrap;
+  }
+  .mobile-brand > .chess-piece {
+    width: 23px;
+    height: 27px;
+  }
+  .breadcrumb > strong {
+    display: none;
+  }
+  .menu-toggle {
+    min-width: 36px;
+    min-height: 44px;
+    font-size: 23px;
+    margin-left: -7px;
+  }
+  .profile-dot {
+    width: 38px;
+    height: 40px;
+  }
+  .sidebar {
+    width: min(290px, 88vw);
+    padding-top: max(24px, env(safe-area-inset-top));
+  }
+  .nav-item {
+    min-height: 45px;
+    font-size: 14px;
+  }
+  .nav-label {
+    font-size: 10px;
+  }
+  .sidebar-bottom {
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
+  }
+  .content {
+    padding: 24px 16px max(16px, env(safe-area-inset-bottom));
+  }
+  .page-heading {
+    margin-bottom: 22px;
+  }
+  .page-heading h1 {
+    font-size: 31px;
+    line-height: 1.2;
+    letter-spacing: -1.3px;
+  }
+  .page-heading p {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-top: 12px;
+  }
+  .eyebrow {
+    font-size: 10px;
+    line-height: 1.5;
+    letter-spacing: 1.1px;
+  }
+  .dashboard-grid {
+    gap: 20px;
+  }
+  .hero {
+    padding: 23px;
+    min-height: 326px;
+  }
+  .hero .eyebrow {
+    font-size: 9px;
+    margin: 0;
+  }
+  .hero h2 {
+    font-size: clamp(31px, 9.2vw, 39px);
+    letter-spacing: -1.6px;
+    margin-top: 20px;
+    line-height: 1.15;
+  }
+  .hero p {
+    font-size: 13px;
+    max-width: calc(100% - 60px);
+    line-height: 1.6;
+    margin-top: 18px;
+  }
+  .hero .button {
+    font-size: 12px;
+    margin-top: 23px;
+    min-height: 46px;
+    padding: 12px 16px;
+    gap: 13px;
+  }
+  .hero-rook {
+    width: 78px;
+    height: 96px;
+    right: 14px;
+    bottom: 29px;
+    opacity: 1;
+    transform: rotate(-12deg);
+    filter: drop-shadow(5px 6px 0 #111015);
+  }
+  .hero-stamp {
+    display: none;
+  }
+  .hero:after {
+    width: 180px;
+    height: 180px;
+    top: auto;
+    bottom: -10px;
+    right: -45px;
+  }
+  .daily {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 20px;
+    gap: 0;
+  }
+  .card-top {
+    display: flex;
+    align-self: stretch;
+  }
+  .card-top .eyebrow {
+    font-size: 10px;
+  }
+  .card-top .pill {
+    display: block;
+    font-size: 10px;
+    padding: 5px 8px;
+  }
+  .mini-board {
+    width: min(100%, 300px);
+    max-width: 100%;
+    margin: 20px auto;
+  }
+  .daily-foot {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .daily-foot h3 {
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  .daily-foot p {
+    font-size: 13px;
+    line-height: 1.5;
+    margin-top: 5px;
+  }
+  .daily-foot .round-button {
+    margin: 0;
+    width: 44px;
+    height: 44px;
+    font-size: 23px;
+  }
+  .mini-board .square small {
+    font-size: 9px;
+  }
+  .section-heading {
+    margin: 28px 0 16px;
+    gap: 10px;
+  }
+  .section-heading h2 {
+    font-size: 18px;
+    line-height: 1.4;
+  }
+  .section-heading .text-button {
+    font-size: 12px;
+    min-height: 44px;
+    white-space: normal;
+    text-align: right;
+  }
+  .text-button span {
+    margin-left: 3px;
+  }
+  .action-grid {
+    gap: 14px;
+  }
+  .action-card {
+    min-height: 126px;
+    padding: 20px;
+  }
+  .action-card small {
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+  .action-card h3 {
+    font-size: 17px;
+    line-height: 1.3;
+    margin: 8px 0;
+  }
+  .action-card p {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .action-card-top {
+    margin: 18px 16px 18px 0;
+  }
+  .action-card-top > span:last-child {
+    top: 14px;
+  }
+  .feature-icon {
+    width: 44px;
+    height: 48px;
+  }
+  .course-grid {
+    gap: 16px;
+  }
+  .course-card:is(button) {
+    grid-template-columns: 100px minmax(0, 1fr);
+  }
+  .course-art {
+    height: 100%;
+    min-height: 180px;
+  }
+  .course-art > span:first-child {
+    width: 83px;
+    height: 103px;
+  }
+  .course-free {
+    font-size: 8px;
+    left: 8px;
+    top: 10px;
+  }
+  .course-info {
+    padding: 18px 14px;
+  }
+  .course-info small {
+    font-size: 8px;
+    line-height: 1.6;
+    letter-spacing: 0.8px;
+  }
+  .course-info h3 {
+    font-size: 16px;
+    line-height: 1.4;
+    margin: 9px 0;
+  }
+  .course-info p {
+    font-size: 12px;
+    line-height: 1.65;
+  }
+  .course-info h3 > span {
+    float: none;
+    margin-left: 5px;
+  }
+  .journey {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 12px;
+    padding: 20px;
+  }
+  .journey > div {
+    min-width: 0;
+  }
+  .journey h3 {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .journey p {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .journey .button {
+    grid-column: 1/-1;
+    width: 100%;
+    margin: 6px 0 0;
+    font-size: 13px;
+    min-height: 46px;
+  }
+  footer {
+    font-size: 11px;
+    line-height: 1.7;
+    row-gap: 15px;
+    flex-wrap: wrap;
+  }
+  .footer-brand {
+    font-size: 15px;
+  }
+  footer a {
+    width: 100%;
+    min-height: 36px;
+  }
+  .workspace-grid {
+    gap: 20px;
+  }
+  .board-meta {
+    font-size: 13px;
+    gap: 8px;
+  }
+  .board-meta > span:last-child {
+    font-size: 11px;
+  }
+  .board-panel {
+    padding: 11px;
+  }
+  .board-toolbar,
+  .board-toolbar button {
+    font-size: 12px;
+  }
+  .board-toolbar button {
+    min-height: 44px;
+  }
+  .board-toolbar > span {
+    font-size: 10px;
+  }
+  .promotion {
+    font-size: 12px;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .promotion select {
+    font-size: 16px;
+    min-height: 44px;
+    padding: 8px;
+  }
+  .workspace-side {
+    padding: 21px;
+    gap: 18px;
+  }
+  .workspace-side p {
+    font-size: 14px;
+  }
+  .workspace-side label,
+  .development-login label {
+    font-size: 13px;
+  }
+  .workspace-side .button {
+    min-height: 46px;
+    font-size: 13px;
+  }
+  .local-note {
+    font-size: 12px !important;
+  }
+  .notice {
+    font-size: 14px;
+  }
+  .notice > button {
+    min-width: 36px;
+    min-height: 36px;
+  }
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .file-label input {
+    font-size: 12px;
+  }
+  .button {
+    min-height: 46px;
+    font-size: 13px;
+  }
+  .account-content p {
+    font-size: 14px;
+  }
+  .account-content {
+    padding: 25px 22px;
+  }
+  .account-illustration {
+    min-height: 175px;
+  }
+  .account-illustration .eyebrow {
+    font-size: 10px;
+  }
+  .account-illustration > span {
+    width: 110px;
+    height: 120px;
+  }
+  .account-content .button {
+    width: 100%;
+  }
+  .stat span {
+    font-size: 12px;
+  }
+  .history-row {
+    font-size: 13px;
+  }
+  .chess-dialog {
+    width: calc(100vw - 16px);
+    padding: 14px;
+    max-height: calc(100dvh - 24px);
+  }
+  .chess-heading h2 {
+    font-size: 20px;
+  }
+  .chess-heading > button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .seat-line {
+    font-size: 13px;
+  }
+  .chess-content {
+    gap: 20px;
+  }
+  .chess-side p,
+  .chess-side label,
+  .move-history {
+    font-size: 14px;
+  }
+  .chess-side > button,
+  .stack-actions button,
+  .confirm-resign button {
+    min-height: 44px;
+    font-size: 14px;
+  }
+  .chess-side select {
+    font-size: 16px;
+  }
+}
+@media (max-width: 600px) {
+  .mobile-brand {
+    color: #f0efeb;
+  }
+}

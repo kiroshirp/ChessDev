@@ -11,3 +11,5 @@ API pública por `https://pixelspace-world.onrender.com/api`, upstream del servi
 El usuario autoriza publicar una vez conectado y verificado el conjunto. TypeScript, lint, tests, build y E2E antes de publicar. No funciones ni cifras simuladas. Sin motor de evaluación, Elo, tienda, pagos o entrenadores IA en esta entrega.
 
 23 de octubre de 2026, cambio posterior: el usuario pide retirar PixelSpace de la URL pública. Renombrar el repositorio a **kiroshirp/ChessDev**, publicar en **https://kiroshirp.github.io/ChessDev/** y actualizar base de assets y FRONTEND_URL del Worker. Conservar historial y direcciones de servicios internos; el callback Lichess en Render no cambia.
+
+Corrección móvil: piezas SVG originales compartidas por todos los tableros e ilustraciones, sin fuentes/emoji. El error Invalid or expired OAuth state obliga a sustituir el estado ligado a cookie de Render por PKCE ligado a la pestaña. Callback en la raíz del frontend, challenge de un solo uso en D1 y state/verifier en sessionStorage durante 15 minutos; ningún token de cuenta o sesión se persiste en almacenamiento web.

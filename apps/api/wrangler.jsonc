@@ -6,7 +6,7 @@
   "vars": {
     "ENVIRONMENT": "production",
     "LICHESS_CLIENT_ID": "chessdev",
-    "LICHESS_REDIRECT_URI": "https://pixelspace-world.onrender.com/api/auth/lichess/callback",
+    "LICHESS_REDIRECT_URI": "https://kiroshirp.github.io/ChessDev/",
     "FRONTEND_URL": "https://kiroshirp.github.io/ChessDev/",
   },
   "d1_databases": [

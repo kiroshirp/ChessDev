@@ -4,6 +4,8 @@ const publicPaths = new Set([
   '/health',
   '/capabilities',
   '/auth/lichess',
+  '/auth/lichess/start',
+  '/auth/lichess/complete',
   '/auth/lichess/callback',
   '/auth/exchange',
   '/auth/me',

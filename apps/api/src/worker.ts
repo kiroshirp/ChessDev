@@ -115,11 +115,23 @@ export async function apiFetch(
     }
     if (request.method === 'POST' && !origin) return json({ error: 'Origin required' }, 403);
     if (url.pathname === '/auth/lichess' && request.method === 'GET') {
+      return Response.redirect(`${env.FRONTEND_URL}?signin=lichess`, 302);
+    }
+    if (url.pathname === '/auth/lichess/callback' && request.method === 'GET') {
+      return Response.redirect(`${env.FRONTEND_URL}#autherror=restart`, 302);
+    }
+    if (url.pathname === '/auth/lichess/start' && request.method === 'POST') {
       if (!lichess) return json({ error: 'Lichess has not been configured' }, 503);
-      const state = randomToken(),
-        verifier = randomToken();
-      const browserState = `${state}.${verifier}`;
-      await store.putState(await digest(browserState), Date.now() + 300000);
+      const body = z
+        .object({
+          state: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
+          challenge: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
+        })
+        .strict()
+        .safeParse(await request.json());
+      if (!body.success) return json({ error: 'Invalid OAuth challenge' }, 400);
+      const { state, challenge } = body.data;
+      await store.putState(await digest(`${state}.${challenge}`), Date.now() + 900000);
       const target = new URL('https://lichess.org/oauth');
       target.search = new URLSearchParams({
         client_id: env.LICHESS_CLIENT_ID!,
@@ -128,33 +140,24 @@ export async function apiFetch(
         scope: '',
         state,
         code_challenge_method: 'S256',
-        code_challenge: await digest(verifier),
+        code_challenge: challenge,
       }).toString();
-      return new Response(null, {
-        status: 302,
-        headers: {
-          Location: target.toString(),
-          'Set-Cookie': `ps_oauth=${browserState}; Path=/auth; HttpOnly; SameSite=Lax; Max-Age=300${url.protocol === 'https:' ? '; Secure' : ''}`,
-        },
-      });
+      return json({ url: target.toString() });
     }
-    if (url.pathname === '/auth/lichess/callback' && request.method === 'GET') {
-      const state = url.searchParams.get('state'),
-        expected = cookie(request, 'ps_oauth');
-      const [browserState, verifier] = (expected ?? '').split('.');
-      if (
-        !state ||
-        !expected ||
-        state !== browserState ||
-        !verifier ||
-        !/^[A-Za-z0-9_-]{43}$/.test(verifier) ||
-        !(await store.consumeState(await digest(expected)))
-      )
+    if (url.pathname === '/auth/lichess/complete' && request.method === 'POST') {
+      const body = z
+        .object({
+          code: z.string().min(1).max(2048),
+          state: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
+          verifier: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
+        })
+        .strict()
+        .safeParse(await request.json());
+      if (!body.success) return json({ error: 'Invalid OAuth response' }, 400);
+      const { code, state, verifier } = body.data;
+      if (!(await store.consumeState(await digest(`${state}.${await digest(verifier)}`))))
         return json({ error: 'Invalid or expired OAuth state' }, 400);
-      if (url.searchParams.has('error'))
-        return Response.redirect(`${env.FRONTEND_URL}#autherror=denied`, 302);
-      const code = url.searchParams.get('code');
-      if (!code || !lichess) return json({ error: 'Missing OAuth code' }, 400);
+      if (!lichess) return json({ error: 'Lichess has not been configured' }, 503);
       const exchange = await providerFetch('https://lichess.org/api/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -188,15 +191,7 @@ export async function apiFetch(
         `lichess:${profile.id.toLowerCase()}`,
         profile.username.slice(0, 32),
       );
-      const oneTime = randomToken();
-      await store.putExchange(await digest(oneTime), userId);
-      return new Response(null, {
-        status: 302,
-        headers: {
-          Location: `${env.FRONTEND_URL}#login=${oneTime}`,
-          'Set-Cookie': 'ps_oauth=; Path=/auth; HttpOnly; SameSite=Lax; Max-Age=0',
-        },
-      });
+      return session(userId);
     }
     if (url.pathname === '/auth/exchange' && request.method === 'POST') {
       const body = z

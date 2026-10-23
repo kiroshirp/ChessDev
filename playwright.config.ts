@@ -7,6 +7,10 @@ export default defineConfig({
   webServer: [
     {
       command: 'npm run dev -w @pixelspace/api',
+      env: {
+        FRONTEND_URL: 'http://127.0.0.1:5174/',
+        LICHESS_REDIRECT_URI: 'http://127.0.0.1:5174/',
+      },
       url: 'http://127.0.0.1:3001/health',
       reuseExistingServer: !process.env.CI,
     },

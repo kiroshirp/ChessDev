@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 import { Chess, type Square, type PieceSymbol } from 'chess.js';
 import type { Identity } from '@pixelspace/auth';
 import { Board } from './Board';
+import { ChessIcon, ChessPiece } from './ChessPiece';
+import { beginLichessLogin, finishLichessLogin, cancelLichessLogin, loginError } from './oauth';
 import { ChessBoard } from './ChessBoard';
 import { API_URL, WORLD_URL, api, login, logout } from './api';
 import { connectWorld, type WorldConnection } from './network';
@@ -92,22 +94,56 @@ function App() {
   const mounted = useRef(true);
   useEffect(() => {
     mounted.current = true;
+    const params = new URLSearchParams(location.search);
+    const callbackCode = params.get('code'),
+      callbackState = params.get('state'),
+      callbackError = params.get('error');
+    const fragment = new URLSearchParams(location.hash.slice(1));
+    const returning =
+      params.has('code') ||
+      params.has('error') ||
+      fragment.has('autherror') ||
+      fragment.has('login');
+    const signingIn = params.get('signin') === 'lichess';
+    if (returning || signingIn) {
+      for (const name of ['code', 'state', 'error', 'error_description', 'signin'])
+        params.delete(name);
+      const query = params.toString();
+      history.replaceState(null, '', location.pathname + (query ? `?${query}` : ''));
+      setPage('play');
+    }
     if (API_URL)
       void (async () => {
         try {
-          const capabilities = await api<{ lichess: boolean; developmentAuth: boolean }>(
-            '/capabilities',
-          );
-          if (!mounted.current) return;
-          setCaps(capabilities);
-          const fragment = new URLSearchParams(location.hash.slice(1));
-          if (fragment.has('login')) {
-            history.replaceState(null, '', location.pathname + location.search);
+          void api<{ lichess: boolean; developmentAuth: boolean }>('/capabilities')
+            .then((capabilities) => {
+              if (mounted.current) setCaps(capabilities);
+            })
+            .catch(() => {
+              if (mounted.current && !returning && !signingIn)
+                setNotice(
+                  'El servicio de cuentas no responde. Puedes volver a intentar el acceso con Lichess.',
+                );
+            });
+          if (signingIn) {
+            await beginLichessLogin();
+          } else if (callbackError) {
+            cancelLichessLogin();
+            setNotice('Has cancelado la autorización en Lichess. Puedes volver a intentarlo.');
+          } else if (callbackCode) {
+            const identity = await finishLichessLogin(callbackCode, callbackState);
+            if (mounted.current) {
+              setUser(identity);
+              setNotice('Sesión iniciada con Lichess.');
+            }
+          } else if (fragment.has('login')) {
             const identity = await login('/auth/exchange', { code: fragment.get('login') });
             if (mounted.current) setUser(identity);
           } else if (fragment.has('autherror')) {
-            history.replaceState(null, '', location.pathname + location.search);
-            setNotice('Lichess no ha autorizado el acceso. Puedes volver a intentarlo.');
+            cancelLichessLogin();
+            setNotice(
+              'Este acceso anterior ha caducado. Pulsa Entrar con Lichess para iniciar uno nuevo.',
+            );
           } else {
             try {
               const result = await api<{ user: Identity }>('/auth/me');
@@ -116,11 +152,8 @@ function App() {
               /* Anonymous visitor. */
             }
           }
-        } catch {
-          if (mounted.current)
-            setNotice(
-              'No se ha podido conectar con el servicio de cuentas. Las herramientas locales siguen disponibles.',
-            );
+        } catch (error) {
+          if (mounted.current) setNotice(loginError(error));
         }
       })();
     return () => {
@@ -128,6 +161,17 @@ function App() {
       void connectionRef.current?.leave();
     };
   }, []);
+  async function signInWithLichess() {
+    if (busy) return;
+    setBusy(true);
+    setNotice('Abriendo Lichess. Si el servidor está en reposo puede tardar unos segundos.');
+    try {
+      await beginLichessLogin();
+    } catch (error) {
+      setNotice(loginError(error));
+      setBusy(false);
+    }
+  }
   useEffect(() => {
     if (!user || !['profile', 'stats', 'panel'].includes(page)) return;
     let active = true;
@@ -325,7 +369,9 @@ function App() {
     <div className="shell">
       <aside className={`sidebar ${menu ? 'open' : ''}`}>
         <button className="brand" onClick={() => navigate('panel')}>
-          <span className="brand-mark">♜</span>
+          <span className="brand-mark">
+            <ChessPiece type="r" color="b" />
+          </span>
           <span>
             Chess<span className="thin">Dev</span>
             <b>.</b>
@@ -346,7 +392,7 @@ function App() {
                   aria-current={page === id ? 'page' : undefined}
                 >
                   <span className="nav-icon" aria-hidden="true">
-                    {icon}
+                    <ChessIcon symbol={icon} />
                   </span>
                   {label}
                   {id === 'review' && progress.solved.length > 0 && (
@@ -362,7 +408,9 @@ function App() {
             <span>↗</span> Aprende las reglas
           </a>
           <button className="account" onClick={() => navigate('profile')}>
-            <span className="avatar">{user ? user.name[0]?.toUpperCase() : '♙'}</span>
+            <span className="avatar">
+              {user ? user.name[0]?.toUpperCase() : <ChessPiece type="p" />}
+            </span>
             <span>
               {user?.name ?? 'Tu próximo movimiento'}
               <small>{user ? 'Mi cuenta · Lichess' : 'Tu espacio empieza aquí'}</small>
@@ -380,7 +428,11 @@ function App() {
             <button className="menu-toggle" aria-label="Abrir menú" onClick={() => setMenu(!menu)}>
               ☰
             </button>
-            <span>Mi espacio</span>
+            <span className="desktop-breadcrumb">Mi espacio</span>
+            <button className="mobile-brand" onClick={() => navigate('panel')}>
+              <ChessPiece type="r" />
+              ChessDev.
+            </button>
             <span>/</span>
             <strong>{title}</strong>
           </div>
@@ -393,7 +445,7 @@ function App() {
               aria-label="Abrir perfil"
               onClick={() => navigate('profile')}
             >
-              {user ? user.name[0]?.toUpperCase() : '♙'}
+              {user ? user.name[0]?.toUpperCase() : <ChessPiece type="p" />}
             </button>
           </div>
         </header>
@@ -451,7 +503,7 @@ function App() {
                     Empezar a entrenar <span>↗</span>
                   </button>
                   <div className="hero-rook" aria-hidden="true">
-                    ♜
+                    <ChessPiece type="r" />
                   </div>
                   <span className="hero-stamp">
                     TU RITMO.
@@ -520,7 +572,9 @@ function App() {
                     onClick={() => navigate(item.id)}
                   >
                     <div className="action-card-top">
-                      <span className="feature-icon">{item.icon}</span>
+                      <span className="feature-icon">
+                        <ChessIcon symbol={item.icon} />
+                      </span>
                       <span>↗</span>
                     </div>
                     <small>{item.tag}</small>
@@ -548,7 +602,9 @@ function App() {
                     }}
                   >
                     <div className={`course-art art-${i}`}>
-                      <span>{['♘', '♗', '♟'][i]}</span>
+                      <span>
+                        <ChessIcon symbol={['♘', '♗', '♟'][i]!} />
+                      </span>
                       <div className="art-grid" />
                       <span className="course-free">GRATIS</span>
                     </div>
@@ -583,7 +639,9 @@ function App() {
               {openings.map((opening, i) => (
                 <article className="card course-card" key={opening.id}>
                   <div className={`course-art art-${i % 3}`}>
-                    <span>♞</span>
+                    <span>
+                      <ChessPiece type="n" />
+                    </span>
                     <div className="art-grid" />
                   </div>
                   <div className="course-info">
@@ -893,7 +951,9 @@ function App() {
           {(page === 'play' || page === 'profile') && (
             <section className="account-layout card">
               <div className="account-illustration">
-                <span>♞</span>
+                <span>
+                  <ChessPiece type="n" />
+                </span>
                 <div className="eyebrow">EL AJEDREZ NOS CONECTA</div>
               </div>
               <div className="account-content">
@@ -908,10 +968,14 @@ function App() {
                 </p>
                 {!user ? (
                   <>
-                    {caps?.lichess && API_URL ? (
-                      <a className="button cream" href={`${API_URL}/auth/lichess`}>
-                        Entrar con Lichess ↗
-                      </a>
+                    {API_URL && caps?.lichess !== false ? (
+                      <button
+                        className="button cream"
+                        disabled={busy}
+                        onClick={() => void signInWithLichess()}
+                      >
+                        {busy ? 'Abriendo Lichess…' : 'Entrar con Lichess ↗'}
+                      </button>
                     ) : (
                       <p className="local-note">
                         {API_URL
@@ -1039,7 +1103,9 @@ function App() {
             </>
           )}
           <footer>
-            <span className="footer-brand">♜ ChessDev.</span>
+            <span className="footer-brand">
+              <ChessPiece type="r" /> ChessDev.
+            </span>
             <span>El ajedrez, a tu manera.</span>
             <a href="https://lichess.org/" target="_blank" rel="noreferrer">
               Más ajedrez en Lichess ↗

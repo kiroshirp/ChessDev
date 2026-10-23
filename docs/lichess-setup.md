@@ -1,14 +1,16 @@
 # Acceso con Lichess
 
-ChessDev usa [OAuth Authorization Code con PKCE S256 de Lichess](https://lichess.org/api#section/Authentication). No requiere registrar una aplicación ni guardar un client secret. El usuario autoriza su identidad; no se solicitan scopes de correo, mensajes, estudios privados ni juego en su cuenta.
+ChessDev usa [OAuth Authorization Code con PKCE S256](https://lichess.org/api#section/Authentication). No requiere registrar una aplicación ni client secret. Scopes vacíos: identidad básica, sin correo, mensajes o acciones en la cuenta de Lichess.
 
-Configuración pública del Worker: `LICHESS_CLIENT_ID=chessdev`, `LICHESS_REDIRECT_URI=https://pixelspace-world.onrender.com/api/auth/lichess/callback`. Desarrollo: `http://127.0.0.1:3001/auth/lichess/callback`.
+Producción: `LICHESS_CLIENT_ID=chessdev`, `LICHESS_REDIRECT_URI=https://kiroshirp.github.io/ChessDev/`, igual a `FRONTEND_URL`. Desarrollo: la URL del frontend local, normalmente `http://127.0.0.1:5173/`.
 
-1. `/auth/lichess` crea state y verifier aleatorios. Cookie HttpOnly durante cinco minutos, state ligado a verifier y consumido una vez en D1.
-2. Redirige a `https://lichess.org/oauth` con challenge S256 y scopes vacíos.
-3. El callback intercambia código con verifier en `/api/token`; consulta `/api/account` y descarta el token de Lichess sin persistirlo ni enviarlo al frontend.
-4. Crea/recupera la identidad `lichess:<id>` y emite un código local de un solo uso, válido 60 segundos, para la sesión propia de ChessDev.
+1. El navegador genera state y verifier, guardados temporalmente en **sessionStorage de esa pestaña**, con un máximo de 15 minutos. Son datos transitorios del protocolo; nunca tokens de cuenta o sesión.
+2. `POST /auth/lichess/start` recibe state y challenge S256. D1 guarda únicamente el hash conjunto y la caducidad. Devuelve la URL fija de autorización Lichess. La navegación usa la misma pestaña.
+3. Lichess devuelve `code` y `state` al frontend de Pages. La página los retira inmediatamente de la URL, compara el state con el de su pestaña y elimina los datos transitorios.
+4. `POST /auth/lichess/complete` verifica y consume el challenge almacenado, intercambia el código con el verifier, consulta `/api/account` y descarta el token de Lichess. Devuelve una sesión propia de ChessDev.
 
-La migración 0002 conserva cuentas y resultados previos, renombra la columna de identidad a `provider_id` y revoca sesiones del proveedor retirado. No vincula cuentas antiguas y nuevas por nombre. Las migraciones históricas conservan nombres de columnas necesarios para actualizar instalaciones existentes.
+El flujo no necesita cookies de Render para validar OAuth. Las sesiones propias siguen usando cookies HttpOnly cuando el navegador las admite y token solo en memoria para el resto. No hay tokens de cuenta ni sesión en almacenamiento web. Un refresco con cookies entre dominios bloqueadas puede requerir entrar de nuevo.
 
-Verificar state incorrecto, verifier manipulado, callback reutilizado, código local de un uso y ausencia de tokens de proveedor persistidos. El consentimiento real en Lichess corresponde al usuario; las pruebas con proveedor simulado no lo sustituyen.
+El enlace antiguo `/auth/lichess` lleva al frontend para iniciar el flujo actual. El callback anterior muestra una instrucción de reinicio sin aceptar una sesión ni devolver un error JSON sin contexto. Las rutas nuevas están enumeradas en el proxy público. No se expone `/internal`.
+
+Pruebas: state/verifier incorrectos, caducidad, concurrencia, repetición, retorno sin cookies, capacidades lentas, otra pestaña y ausencia de tokens persistidos. Proveedor simulado en pruebas; no sustituye una autorización con una cuenta real.

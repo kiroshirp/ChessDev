@@ -11,3 +11,5 @@ GitHub: CI aprobado para la rama de preparación fcd4b37 (run 39990788535). La a
 Límites: cuatro líneas introductorias, tres problemas; sin motor de evaluación, rating, repetición espaciada automática o sincronización de estudios entre equipos. No se ha probado carga ni juego con dos cuentas remotas. Resultados finalizados persistidos en D1; partidas activas efímeras en Render.
 
 Publicación confirmada: [Pages](https://github.com/kiroshirp/PixelSpace/actions/runs/39993386260) y CI aprobaron el commit 2962e2e. La URL pública https://kiroshirp.github.io/PixelSpace/ muestra ChessDev y el botón Entrar con Lichess apunta al proxy comprobado. Se revisa además el contraste de la ilustración en anchos intermedios.
+
+Corrección móvil: 31 pruebas unitarias y 8 E2E aprobados localmente, incluyendo comparación de las doce piezas SVG, anchos 320/390/430, flujo OAuth con proveedor simulado sin cookies y con capacidades lentas, y rechazo de retorno desde otra pestaña. Capturas de móvil y escritorio revisadas. Pendiente publicar frontend/Worker/proxy y comprobar autorización con cuenta real; no se ha probado Safari en dispositivo físico.

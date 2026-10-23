@@ -3,20 +3,7 @@ import { Chess, type Square, type PieceSymbol } from 'chess.js';
 import type { BoardSnapshot } from '@pixelspace/chess-core';
 import type { WorldConnection } from './network';
 import type { Copy } from './copy';
-const symbols: Record<string, string> = {
-  wk: '♔',
-  wq: '♕',
-  wr: '♖',
-  wb: '♗',
-  wn: '♘',
-  wp: '♙',
-  bk: '♚',
-  bq: '♛',
-  br: '♜',
-  bb: '♝',
-  bn: '♞',
-  bp: '♟',
-};
+import { ChessPiece } from './ChessPiece';
 export function ChessBoard({
   state,
   connection,
@@ -128,7 +115,7 @@ export function ChessBoard({
                     aria-label={`${square}${piece ? ` ${piece.color}${piece.type}` : ''}${selected === square ? ` ${t.selected}` : ''}${isLegal ? ` ${t.legal}` : ''}`}
                     onClick={() => play(square)}
                   >
-                    <span aria-hidden="true">{piece ? symbols[piece.color + piece.type] : ''}</span>
+                    {piece && <ChessPiece type={piece.type} color={piece.color} />}
                     <small aria-hidden="true">{square}</small>
                   </button>
                 );

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Chess, type Square, type PieceSymbol } from 'chess.js';
-const glyphs: Record<string, string> = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
+import { ChessPiece } from './ChessPiece';
 const names: Record<string, string> = {
   k: 'rey',
   q: 'dama',
@@ -49,7 +49,7 @@ export function Board({
                   } else setSelection(piece?.color === chess.turn() ? { square, fen } : null);
                 }}
               >
-                <span>{piece ? glyphs[piece.type] : ''}</span>
+                {piece && <ChessPiece type={piece.type} color={piece.color} />}
                 {col === 0 && <small className="rank">{rank}</small>}
                 {row === 7 && <small className="file">{file}</small>}
               </button>
