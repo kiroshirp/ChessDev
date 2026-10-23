@@ -21,23 +21,21 @@ describe('fixed public API proxy', () => {
       new Response(null, {
         status: 302,
         headers: {
-          Location: 'https://discord.com/oauth2/authorize?state=test',
+          Location: 'https://lichess.org/oauth?state=test',
           'Set-Cookie': 'ps_oauth=test; Path=/auth; HttpOnly; Secure; SameSite=Lax',
         },
       }),
     );
     const base = await serve(upstream);
-    const response = await fetch(`${base}/api/auth/discord`, {
+    const response = await fetch(`${base}/api/auth/lichess`, {
       redirect: 'manual',
       headers: { 'CF-Connecting-IP': 'spoofed', Origin: 'https://kiroshirp.github.io' },
     });
     expect(response.status).toBe(302);
-    expect(response.headers.get('location')).toBe(
-      'https://discord.com/oauth2/authorize?state=test',
-    );
+    expect(response.headers.get('location')).toBe('https://lichess.org/oauth?state=test');
     expect(response.headers.get('set-cookie')).toContain('Path=/api/auth; HttpOnly; Secure');
     const [url, options] = upstream.mock.calls[0]!;
-    expect(String(url)).toBe('https://api.example/auth/discord');
+    expect(String(url)).toBe('https://api.example/auth/lichess');
     expect(new Headers(options!.headers).has('CF-Connecting-IP')).toBe(false);
   });
   it('forwards session credentials and POST bodies without following redirects', async () => {

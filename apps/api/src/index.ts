@@ -17,13 +17,9 @@ const app = buildApp({
   WORLD_SECRET: process.env.WORLD_SECRET ?? 'pixelspace-local-world-secret-change-in-production',
   INTERNAL_SECRET:
     process.env.INTERNAL_SECRET ?? 'pixelspace-local-internal-secret-change-in-production',
-  ...(process.env.DISCORD_CLIENT_ID ? { DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID } : {}),
-  ...(process.env.DISCORD_CLIENT_SECRET
-    ? { DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET }
-    : {}),
-  ...(process.env.DISCORD_REDIRECT_URI
-    ? { DISCORD_REDIRECT_URI: process.env.DISCORD_REDIRECT_URI }
-    : {}),
+  LICHESS_CLIENT_ID: process.env.LICHESS_CLIENT_ID ?? 'chessdev',
+  LICHESS_REDIRECT_URI:
+    process.env.LICHESS_REDIRECT_URI ?? 'http://127.0.0.1:3001/auth/lichess/callback',
 });
 app.addHook('onClose', async () => db.close());
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => void app.close());

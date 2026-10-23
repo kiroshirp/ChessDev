@@ -23,12 +23,12 @@ assert.equal((await (await request(api, '/health', 200)).json()).status, 'ok');
 const caps = await (await request(api, '/capabilities', 200)).json();
 assert.equal(caps.developmentAuth, false);
 assert.equal(caps.accounts, true);
-assert.equal(caps.discord, true, 'Configure Discord before publishing connected Pages');
-console.log(`Discord configured: ${caps.discord === true}`);
+assert.equal(caps.lichess, true, 'Configure Lichess before publishing connected Pages');
+console.log(`Lichess configured: ${caps.lichess === true}`);
 await request(api, '/auth/me', 401);
 await request(api, '/auth/dev', 404, { name: 'Must not authenticate' });
 await request(api, '/world/ticket', 401, {});
 assert.equal((await (await request(world, '/health', 200)).json()).multiplayer, true);
 console.log(
-  'Public infrastructure checks passed. Real Discord/two-user gameplay requires separate verification.',
+  'Public infrastructure checks passed. Real Lichess/two-user gameplay requires separate verification.',
 );

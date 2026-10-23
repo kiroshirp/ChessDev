@@ -38,10 +38,10 @@ export class AcademyRoom extends Room<{ state: WorldState }> {
       .object({ ticket: z.string().max(2048) })
       .passthrough()
       .safeParse(options);
-    if (!parsed.success) throw new ServerError(401, 'DISCORD_REQUIRED');
+    if (!parsed.success) throw new ServerError(401, 'LICHESS_REQUIRED');
     const identity = await verifyTicket(parsed.data.ticket, AcademyRoom.config.worldSecret);
     if (AcademyRoom.config.production && identity.development)
-      throw new ServerError(403, 'DISCORD_REQUIRED');
+      throw new ServerError(403, 'LICHESS_REQUIRED');
     for (const [nonce, expiry] of ticketNonces) if (expiry < Date.now()) ticketNonces.delete(nonce);
     if (ticketNonces.has(identity.nonce)) throw new ServerError(401, 'TICKET_REUSED');
     const active = await this.internal('/internal/session', { sessionId: identity.sessionId });

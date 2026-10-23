@@ -10,7 +10,7 @@ Plataforma de ajedrez en español con la identidad visual de ChessDev: antracita
 - Tablero legal con selección de promoción, giro, importación/exportación PGN y reproducción de partidas. No incluye evaluación de motor.
 - Estudios y progreso guardados en el navegador. Exportación PGN para copias de seguridad; no se sincronizan entre equipos.
 - Partidas amistosas en mesa compartida: blancas, negras, espectadores, reglas autoritativas, tablas, rendición e historial persistido en D1. Sin reloj ni Elo.
-- Discord obligatorio para juego público; las herramientas locales se pueden explorar sin cuenta. Identidades de pruebas solo en loopback y desarrollo.
+- Lichess obligatorio para juego público; las herramientas locales se pueden explorar sin cuenta. Identidades de pruebas solo en loopback y desarrollo.
 
 No se simulan usuarios conectados, clasificaciones, notificaciones ni estadísticas. No hay tienda, pagos, análisis automático ni entrenadores IA.
 

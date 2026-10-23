@@ -10,7 +10,7 @@ Panel, juego, perfil, estudios PGN, cursos introductorios, entrenador de apertur
 
 La primera entrega contiene cuatro líneas introductorias y tres problemas originales. El repaso y Woodpecker permiten repetir esta colección; no se presenta como una biblioteca completa ni repetición espaciada automática. El tablero de análisis explora jugadas legales e importa/exporta PGN; no incluye motor. Los estudios y progreso se guardan localmente, con exportación PGN y mensajes ante errores de almacenamiento.
 
-La mesa multijugador usa el servidor autoritativo existente con acceso directo desde Jugar. Partidas amistosas sin reloj ni rating, dos asientos, espectadores, rendición, tablas y resultados persistidos. Se conserva el historial previo. Discord obligatorio para juego público y perfil; herramientas locales accesibles sin cuenta. Desarrollo local limitado a loopback.
+La mesa multijugador usa el servidor autoritativo existente con acceso directo desde Jugar. Partidas amistosas sin reloj ni rating, dos asientos, espectadores, rendición, tablas y resultados persistidos. Se conserva el historial previo. Lichess obligatorio para juego público y perfil; herramientas locales accesibles sin cuenta. Desarrollo local limitado a loopback.
 
 ## Repositorio y despliegue
 

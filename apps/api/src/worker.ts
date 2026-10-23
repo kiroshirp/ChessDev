@@ -8,9 +8,8 @@ export interface ApiEnv {
   WORLD_SECRET: string;
   INTERNAL_SECRET: string;
   ENVIRONMENT: 'local' | 'production';
-  DISCORD_CLIENT_ID?: string;
-  DISCORD_CLIENT_SECRET?: string;
-  DISCORD_REDIRECT_URI?: string;
+  LICHESS_CLIENT_ID?: string;
+  LICHESS_REDIRECT_URI?: string;
   ALLOWED_ORIGINS?: string;
 }
 const localHost = (r: Request) =>
@@ -76,14 +75,12 @@ export async function apiFetch(
     }
     if (url.pathname === '/health')
       return json({ service: 'pixelspace-api', status: 'ok', database: 'D1-compatible SQLite' });
-    const discord = Boolean(
-        env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET && env.DISCORD_REDIRECT_URI,
-      ),
+    const lichess = Boolean(env.LICHESS_CLIENT_ID && env.LICHESS_REDIRECT_URI),
       dev = env.ENVIRONMENT === 'local' && localHost(request);
     if (url.pathname === '/capabilities')
       return json({
         accounts: true,
-        discord,
+        lichess,
         developmentAuth: dev,
         multiplayer: true,
         chess: true,
@@ -117,69 +114,79 @@ export async function apiFetch(
       return json({ saved: true });
     }
     if (request.method === 'POST' && !origin) return json({ error: 'Origin required' }, 403);
-    if (url.pathname === '/auth/discord' && request.method === 'GET') {
-      if (!discord) return json({ error: 'Discord has not been configured' }, 503);
-      const state = randomToken();
-      await store.putState(await digest(state), Date.now() + 300000);
-      const target = new URL('https://discord.com/oauth2/authorize');
+    if (url.pathname === '/auth/lichess' && request.method === 'GET') {
+      if (!lichess) return json({ error: 'Lichess has not been configured' }, 503);
+      const state = randomToken(),
+        verifier = randomToken();
+      const browserState = `${state}.${verifier}`;
+      await store.putState(await digest(browserState), Date.now() + 300000);
+      const target = new URL('https://lichess.org/oauth');
       target.search = new URLSearchParams({
-        client_id: env.DISCORD_CLIENT_ID!,
-        redirect_uri: env.DISCORD_REDIRECT_URI!,
+        client_id: env.LICHESS_CLIENT_ID!,
+        redirect_uri: env.LICHESS_REDIRECT_URI!,
         response_type: 'code',
-        scope: 'identify',
+        scope: '',
         state,
+        code_challenge_method: 'S256',
+        code_challenge: await digest(verifier),
       }).toString();
       return new Response(null, {
         status: 302,
         headers: {
           Location: target.toString(),
-          'Set-Cookie': `ps_oauth=${state}; Path=/auth; HttpOnly; SameSite=Lax; Max-Age=300${url.protocol === 'https:' ? '; Secure' : ''}`,
+          'Set-Cookie': `ps_oauth=${browserState}; Path=/auth; HttpOnly; SameSite=Lax; Max-Age=300${url.protocol === 'https:' ? '; Secure' : ''}`,
         },
       });
     }
-    if (url.pathname === '/auth/discord/callback' && request.method === 'GET') {
+    if (url.pathname === '/auth/lichess/callback' && request.method === 'GET') {
       const state = url.searchParams.get('state'),
         expected = cookie(request, 'ps_oauth');
+      const [browserState, verifier] = (expected ?? '').split('.');
       if (
         !state ||
         !expected ||
-        state !== expected ||
-        !(await store.consumeState(await digest(state)))
+        state !== browserState ||
+        !verifier ||
+        !/^[A-Za-z0-9_-]{43}$/.test(verifier) ||
+        !(await store.consumeState(await digest(expected)))
       )
         return json({ error: 'Invalid or expired OAuth state' }, 400);
       if (url.searchParams.has('error'))
         return Response.redirect(`${env.FRONTEND_URL}#autherror=denied`, 302);
       const code = url.searchParams.get('code');
-      if (!code || !discord) return json({ error: 'Missing OAuth code' }, 400);
-      const exchange = await providerFetch('https://discord.com/api/v10/oauth2/token', {
+      if (!code || !lichess) return json({ error: 'Missing OAuth code' }, 400);
+      const exchange = await providerFetch('https://lichess.org/api/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-          client_id: env.DISCORD_CLIENT_ID!,
-          client_secret: env.DISCORD_CLIENT_SECRET!,
+          client_id: env.LICHESS_CLIENT_ID!,
+          code_verifier: verifier,
           grant_type: 'authorization_code',
           code,
-          redirect_uri: env.DISCORD_REDIRECT_URI!,
+          redirect_uri: env.LICHESS_REDIRECT_URI!,
         }),
         signal: AbortSignal.timeout(10000),
       });
-      if (!exchange.ok) return json({ error: 'Discord authorization failed' }, 502);
+      if (!exchange.ok) return json({ error: 'Lichess authorization failed' }, 502);
       const token = z.object({ access_token: z.string() }).parse(await exchange.json());
-      const account = await providerFetch('https://discord.com/api/v10/users/@me', {
+      const account = await providerFetch('https://lichess.org/api/account', {
         headers: { Authorization: `Bearer ${token.access_token}` },
         signal: AbortSignal.timeout(10000),
       });
-      if (!account.ok) return json({ error: 'Discord profile unavailable' }, 502);
+      if (!account.ok) return json({ error: 'Lichess profile unavailable' }, 502);
       const profile = z
         .object({
-          id: z.string().regex(/^\d+$/),
-          username: z.string(),
-          global_name: z.string().nullable().optional(),
+          id: z
+            .string()
+            .min(1)
+            .max(100)
+            .regex(/^[a-z0-9_-]+$/i),
+          username: z.string().min(1).max(100),
         })
         .parse(await account.json());
-      const userId = await store.upsertDiscord(
-        profile.id,
-        (profile.global_name || profile.username).slice(0, 32),
+      const userId = await store.upsertIdentity(
+        `lichess:${profile.id.toLowerCase()}`,
+        profile.username.slice(0, 32),
       );
       const oneTime = randomToken();
       await store.putExchange(await digest(oneTime), userId);
@@ -207,7 +214,9 @@ export async function apiFetch(
         .strict()
         .safeParse(await request.json());
       if (!body.success) return json({ error: 'Invalid display name' }, 400);
-      return session(await store.upsertDiscord(`dev:${crypto.randomUUID()}`, body.data.name, true));
+      return session(
+        await store.upsertIdentity(`dev:${crypto.randomUUID()}`, body.data.name, true),
+      );
     }
     const token =
       request.headers.get('Authorization')?.replace(/^Bearer /, '') ??
@@ -215,7 +224,7 @@ export async function apiFetch(
     const identity = token ? await store.identity(await digest(token)) : null;
     if (url.pathname === '/auth/me')
       return identity ? json({ user: identity }) : json({ error: 'Unauthorized' }, 401);
-    if (!identity) return json({ error: 'Sign in with Discord' }, 401);
+    if (!identity) return json({ error: 'Sign in with Lichess' }, 401);
     if (env.ENVIRONMENT === 'production' && identity.development)
       return json({ error: 'Development identity is not allowed' }, 403);
     if (url.pathname === '/auth/logout' && request.method === 'POST') {

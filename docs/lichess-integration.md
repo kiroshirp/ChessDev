@@ -1,9 +1,7 @@
-# Lichess
+# Integración con Lichess
 
-**Pendiente — Fase 8.** No hay OAuth, token, petición a Lichess ni perfil externo en esta entrega. PixelSpace no dependerá de esta integración para funcionar.
+La autenticación usa OAuth PKCE S256 para obtener la identidad básica del usuario, sin client secret ni scopes de acciones. [Configuración](lichess-setup.md).
 
-Antes de implementar: revisar [API oficial](https://lichess.org/api), scopes, modalidades Board API, límites y condiciones vigentes. OAuth Authorization Code + PKCE, state verificado, redirect allowlist y tokens cifrados en backend. No exponer tokens al frontend ni almacenar credenciales Lichess.
+Las partidas de ChessDev se juegan en su propio servidor autoritativo y se guardan en D1. No modifican Elo ni historial de Lichess. No hay importación automática de partidas externas: se pueden importar PGN manualmente. No se ejecutan jugadas ni mensajes en la cuenta Lichess del usuario.
 
-Primera entrega: vínculo opcional de perfil, ratings con fuente/modalidad/fecha y revocación. No confundirlos con rating interno. Imports PGN autorizados y acotados. Cola por credencial, una solicitud activa cuando corresponda, backoff y gestión de 429/caídas. No scraping ni automatización de la web.
-
-Pruebas de aceptación: éxito/denegación OAuth, state/PKCE inválidos, expiración, revocación, 429 y datos incompletos. Revisar los scopes de nuevo al añadir desafíos; no pedir permisos de juego para mostrar estadísticas.
+Motor de evaluación, sincronización de estudios y consulta de estadísticas externas quedan fuera de esta entrega.

@@ -67,7 +67,7 @@ try {
   await expect(page.getByRole('group', { name: 'Tablero de ajedrez' })).toBeVisible();
   assert.deepEqual(errors, []);
   console.log(
-    'ChessDev production smoke: /PixelSpace/, assets, Discord required for online play, local analysis, no development bypass and no browser errors: OK',
+    'ChessDev production smoke: /PixelSpace/, assets, Lichess required for online play, local analysis, no development bypass and no browser errors: OK',
   );
 } finally {
   await browser?.close();

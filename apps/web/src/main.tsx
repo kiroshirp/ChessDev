@@ -80,7 +80,7 @@ function App() {
     [solved, setSolved] = useState(false),
     [hint, setHint] = useState(false);
   const [user, setUser] = useState<Identity | null>(null),
-    [caps, setCaps] = useState<{ discord: boolean; developmentAuth: boolean } | null>(null);
+    [caps, setCaps] = useState<{ lichess: boolean; developmentAuth: boolean } | null>(null);
   const [busy, setBusy] = useState(false),
     [devName, setDevName] = useState('');
   const [connection, setConnection] = useState<WorldConnection | null>(null),
@@ -95,7 +95,7 @@ function App() {
     if (API_URL)
       void (async () => {
         try {
-          const capabilities = await api<{ discord: boolean; developmentAuth: boolean }>(
+          const capabilities = await api<{ lichess: boolean; developmentAuth: boolean }>(
             '/capabilities',
           );
           if (!mounted.current) return;
@@ -107,7 +107,7 @@ function App() {
             if (mounted.current) setUser(identity);
           } else if (fragment.has('autherror')) {
             history.replaceState(null, '', location.pathname + location.search);
-            setNotice('Discord no ha autorizado el acceso. Puedes volver a intentarlo.');
+            setNotice('Lichess no ha autorizado el acceso. Puedes volver a intentarlo.');
           } else {
             try {
               const result = await api<{ user: Identity }>('/auth/me');
@@ -365,7 +365,7 @@ function App() {
             <span className="avatar">{user ? user.name[0]?.toUpperCase() : '♙'}</span>
             <span>
               {user?.name ?? 'Tu próximo movimiento'}
-              <small>{user ? 'Mi cuenta · Discord' : 'Tu espacio empieza aquí'}</small>
+              <small>{user ? 'Mi cuenta · Lichess' : 'Tu espacio empieza aquí'}</small>
             </span>
             <span>⋯</span>
           </button>
@@ -904,19 +904,19 @@ function App() {
                 <p>
                   {page === 'play'
                     ? 'Partidas amistosas con otra persona en una mesa compartida. Sin reloj ni clasificación. Puedes jugar o mirar.'
-                    : 'Accede con Discord para jugar y consultar las partidas guardadas en tu cuenta.'}
+                    : 'Accede con Lichess para jugar y consultar las partidas guardadas en tu cuenta.'}
                 </p>
                 {!user ? (
                   <>
-                    {caps?.discord && API_URL ? (
-                      <a className="button cream" href={`${API_URL}/auth/discord`}>
-                        Entrar con Discord ↗
+                    {caps?.lichess && API_URL ? (
+                      <a className="button cream" href={`${API_URL}/auth/lichess`}>
+                        Entrar con Lichess ↗
                       </a>
                     ) : (
                       <p className="local-note">
                         {API_URL
-                          ? 'Comprobando el acceso con Discord…'
-                          : 'El acceso con Discord necesita un servidor de cuentas configurado.'}
+                          ? 'Comprobando el acceso con Lichess…'
+                          : 'El acceso con Lichess necesita un servidor de cuentas configurado.'}
                       </p>
                     )}
                     <p className="local-note">
@@ -961,7 +961,7 @@ function App() {
                   <>
                     <div className="status-line">
                       <span className="tiny-dot" />
-                      {user.development ? 'Identidad local de pruebas' : 'Conectado con Discord'}
+                      {user.development ? 'Identidad local de pruebas' : 'Conectado con Lichess'}
                     </div>
                     {page === 'play' && (
                       <button
@@ -1002,8 +1002,8 @@ function App() {
                 ))}
               </div>
               <p className="local-note">
-                Práctica y estudios: este navegador. Partidas: tu cuenta de Discord. Sin
-                estimaciones de Elo.
+                Práctica y estudios: este navegador. Partidas de ChessDev vinculadas a tu cuenta
+                Lichess. Sin estimaciones de Elo.
               </p>
               <section className="card history-panel">
                 <h2>Mis partidas</h2>

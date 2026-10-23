@@ -11,12 +11,12 @@ export class UserStore {
     return !!row && row.count <= 30;
   }
   constructor(private db: DatabaseBinding) {}
-  async upsertDiscord(discordId: string, displayName: string, development = false) {
+  async upsertIdentity(providerId: string, displayName: string, development = false) {
     const row = await this.db
       .prepare(
-        'INSERT INTO users (id,discord_id,display_name,development,created_at) VALUES (?,?,?,?,?) ON CONFLICT(discord_id) DO UPDATE SET display_name=excluded.display_name RETURNING id',
+        'INSERT INTO users (id,provider_id,display_name,development,created_at) VALUES (?,?,?,?,?) ON CONFLICT(provider_id) DO UPDATE SET display_name=excluded.display_name RETURNING id',
       )
-      .bind(crypto.randomUUID(), discordId, displayName, Number(development), Date.now())
+      .bind(crypto.randomUUID(), providerId, displayName, Number(development), Date.now())
       .first<{ id: string }>();
     if (!row) throw new Error('Unable to persist user');
     return row.id;

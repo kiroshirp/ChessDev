@@ -40,7 +40,7 @@ gcloud builds submit . --config=infrastructure/cloudbuild.world.yaml --project=p
 
 Si el repositorio ya existe, inspeccionarlo y reutilizarlo. El archivo Cloud Build solo construye/publica la imagen; no despliega. `.gcloudignore` excluye secretos, Git, bases locales y dependencias. Ejecutar `gcloud meta list-files-for-upload` y revisar antes de subir. Para publicaciones sucesivas usar `_TAG` con el SHA de Git y desplegar la imagen por digest verificado, sin reutilizar `manual` como identificador inmutable.
 
-Crear cuenta de servicio `pixelspace-world` sin roles de base de datos. Crear secretos `pixelspace-world-secret` y `pixelspace-internal-secret`, con los mismos valores aleatorios de 32+ caracteres configurados en el Worker, distintos entre sí. Introducirlos mediante Secret Manager de forma privada; no pasarlos como argumentos, variables VITE o mensajes. Dar `roles/secretmanager.secretAccessor` a esa cuenta **solo en esos dos secretos**. No se necesitan credenciales de Discord en Colyseus, ni claves JSON de servicio.
+Crear cuenta de servicio `pixelspace-world` sin roles de base de datos. Crear secretos `pixelspace-world-secret` y `pixelspace-internal-secret`, con los mismos valores aleatorios de 32+ caracteres configurados en el Worker, distintos entre sí. Introducirlos mediante Secret Manager de forma privada; no pasarlos como argumentos, variables VITE o mensajes. Dar `roles/secretmanager.secretAccessor` a esa cuenta **solo en esos dos secretos**. No se necesitan credenciales de Lichess en Colyseus, ni claves JSON de servicio.
 
 Tras verificar URL del Worker, imagen y cuenta de servicio, adaptar los valores de relleno:
 
@@ -48,13 +48,13 @@ Tras verificar URL del Worker, imagen y cuenta de servicio, adaptar los valores 
 gcloud run deploy pixelspace-world --project=pixelspace-93730 --region=europe-west1 --image=europe-west1-docker.pkg.dev/pixelspace-93730/pixelspace/world@sha256:REEMPLAZAR_DIGEST --service-account=pixelspace-world@pixelspace-93730.iam.gserviceaccount.com --port=8080 --cpu=1 --memory=512Mi --concurrency=80 --min=0 --max=1 --min-instances=0 --max-instances=1 --timeout=3600 --session-affinity --no-use-http2 --allow-unauthenticated --set-env-vars=NODE_ENV=production,HOST=0.0.0.0,API_URL=https://REEMPLAZAR-API.workers.dev,ALLOWED_ORIGINS=https://kiroshirp.github.io --set-secrets=WORLD_SECRET=pixelspace-world-secret:1,INTERNAL_SECRET=pixelspace-internal-secret:1
 ```
 
-El transporte HTTP debe ser accesible desde navegadores; `--allow-unauthenticated` se refiere a IAM de Google. La aplicación sigue exigiendo ticket firmado y sesión Discord activa para entrar al mundo. No publicar con la URL de API de relleno. La concurrencia 80 incluye HTTP y WebSockets; no es una capacidad de jugadores demostrada (sala actual 24, sin prueba de carga).
+El transporte HTTP debe ser accesible desde navegadores; `--allow-unauthenticated` se refiere a IAM de Google. La aplicación sigue exigiendo ticket firmado y sesión Lichess activa para entrar al mundo. No publicar con la URL de API de relleno. La concurrencia 80 incluye HTTP y WebSockets; no es una capacidad de jugadores demostrada (sala actual 24, sin prueba de carga).
 
 ## Conectar Pages y validar
 
 Obtener URL real de `gcloud run services describe pixelspace-world --project=pixelspace-93730 --region=europe-west1 --format=value(status.url)`. Guardarla como variable de repositorio `VITE_WORLD_URL`; `VITE_API_URL` apunta al Worker. Recompilar Pages. El cliente usa directamente HTTPS/WSS de Cloud Run, sin proxy de Firebase Hosting.
 
-Verificar `/health`, CORS de Pages, entrada anónima rechazada, dos usuarios Discord distintos en la misma sala, movimiento, colisiones, reconexión, partida legal y resultado guardado en D1. Verificar logout y expiración de sesión. No declarar este paso completo hasta probarlo remotamente.
+Verificar `/health`, CORS de Pages, entrada anónima rechazada, dos usuarios Lichess distintos en la misma sala, movimiento, colisiones, reconexión, partida legal y resultado guardado en D1. Verificar logout y expiración de sesión. No declarar este paso completo hasta probarlo remotamente.
 
 Cloud Run corta cada WebSocket al alcanzar el timeout (máximo actual 60 minutos); el cliente Colyseus ya incluye reconexión, que debe comprobarse contra ese cierre real. Afinidad es orientativa. Mantener una instancia y una revisión recibiendo tráfico; antes de actualizar, vaciar salas y avisar de mantenimiento. Los límites no garantizan exclusión absoluta durante despliegues/reinicios; esta primera versión no sincroniza salas entre procesos ni persiste partidas activas. No dividir tráfico entre revisiones ni ofrecer actualizaciones sin interrupción. Antes de escalar, añadir presencia/matchmaking compartidos y recuperación de partidas.
 

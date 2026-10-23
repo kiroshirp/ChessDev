@@ -6,7 +6,7 @@ Arquitectura aceptada por el usuario: GitHub Pages para la web, Cloudflare Worke
 
 ## Configuración preparada
 
-Acceso público actual del API: `https://pixelspace-world.onrender.com/api`; `VITE_WORLD_URL=https://pixelspace-world.onrender.com`. `API_PROXY_ENABLED=true` habilita solo las rutas públicas enumeradas en `apiProxy.ts`; `API_URL` del servidor continúa apuntando al Worker. Callback de Discord: `https://pixelspace-world.onrender.com/api/auth/discord/callback`. El proxy no publica `/internal`, limita cuerpos a 64 KiB, conserva redirecciones sin seguirlas y ajusta el cookie OAuth a `/api/auth`. Las cuotas por IP del Worker agrupan a los clientes del proxy por la salida de Render; el límite actual de 30 peticiones/minuto por ruta es compartido por esa salida y debe revisarse antes de ampliar la beta. No se confía en cabeceras IP suministradas por el navegador.
+Acceso público actual del API: `https://pixelspace-world.onrender.com/api`; `VITE_WORLD_URL=https://pixelspace-world.onrender.com`. `API_PROXY_ENABLED=true` habilita solo las rutas públicas enumeradas en `apiProxy.ts`; `API_URL` del servidor continúa apuntando al Worker. Callback de Lichess: `https://pixelspace-world.onrender.com/api/auth/lichess/callback`. El proxy no publica `/internal`, limita cuerpos a 64 KiB, conserva redirecciones sin seguirlas y ajusta el cookie OAuth a `/api/auth`. Las cuotas por IP del Worker agrupan a los clientes del proxy por la salida de Render; el límite actual de 30 peticiones/minuto por ruta es compartido por esa salida y debe revisarse antes de ampliar la beta. No se confía en cabeceras IP suministradas por el navegador.
 
 `render.yaml` define solo un Web Service Docker, `plan: free`, región Frankfurt, salud `/health`, variables públicas y tres valores solicitados de forma privada. No crea bases, discos ni servicios de pago. Los despliegues automáticos están desactivados para evitar reiniciar partidas con cada push.
 
@@ -14,9 +14,9 @@ Si el usuario acepta Render, iniciar sesión o crear su cuenta revisando sus té
 
 En Blueprint usar este repositorio y `render.yaml`. Alternativa manual: Web Service, Public Git Repository `https://github.com/kiroshirp/PixelSpace`, Dockerfile `infrastructure/world.Dockerfile`, contexto raíz, plan Free, `/health`, autodeploy desactivado y variables del YAML. `PORT` lo asigna Render y ya lo admite el servidor.
 
-`API_URL` debe ser el HTTPS real del Worker Cloudflare. `WORLD_SECRET` e `INTERNAL_SECRET` son dos secretos aleatorios distintos de 32+ caracteres, iguales a sus respectivos valores del Worker. Introducirlos privadamente en el panel, no en Git ni en el chat. Discord Client Secret solo pertenece al Worker.
+`API_URL` debe ser el HTTPS real del Worker Cloudflare. `WORLD_SECRET` e `INTERNAL_SECRET` son dos secretos aleatorios distintos de 32+ caracteres, iguales a sus respectivos valores del Worker. Introducirlos privadamente en el panel, no en Git ni en el chat. Lichess usa PKCE y no necesita client secret.
 
-Antes de desplegar, comprobar también que Cloudflare usa Workers Free/D1 Free. Configurar D1, OAuth y secretos según `deployment.md` y `discord-setup.md`. No crear recursos pagados para superar cuotas. Al disponer de la URL real de Render, guardarla como `VITE_WORLD_URL`; Worker como `VITE_API_URL`, recompilar Pages y probar dos cuentas Discord reales.
+Antes de desplegar, comprobar también que Cloudflare usa Workers Free/D1 Free. Configurar D1, OAuth y secretos según `deployment.md` y `lichess-setup.md`. No crear recursos pagados para superar cuotas. Al disponer de la URL real de Render, guardarla como `VITE_WORLD_URL`; Worker como `VITE_API_URL`, recompilar Pages y probar dos cuentas Lichess reales.
 
 ## Límites que afectan a esta prueba
 

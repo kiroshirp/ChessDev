@@ -3,8 +3,8 @@ import type { RequestHandler } from 'express';
 const publicPaths = new Set([
   '/health',
   '/capabilities',
-  '/auth/discord',
-  '/auth/discord/callback',
+  '/auth/lichess',
+  '/auth/lichess/callback',
   '/auth/exchange',
   '/auth/me',
   '/auth/logout',

@@ -6,7 +6,7 @@ export const requestLimits = sqliteTable('request_limits', {
 });
 export const users = sqliteTable('users', {
   id: text('id').primaryKey(),
-  discordId: text('discord_id').notNull().unique(),
+  providerId: text('provider_id').notNull().unique(),
   displayName: text('display_name').notNull(),
   privacy: text('privacy').notNull().default('private'),
   development: integer('development', { mode: 'boolean' }).notNull().default(false),

@@ -1,20 +1,13 @@
-# Persistencia Cloudflare D1
+# Persistencia de ChessDev
 
-D1 utiliza SQLite. `packages/database/src/schema.ts` define el esquema Drizzle; `d1-migrations/` contiene SQL y snapshots. Las cuentas no necesitan contraseña ni correo: Discord aporta un identificador único y un nombre visible con scope `identify`.
+Cloudflare D1 (SQLite), esquema Drizzle en `packages/database/src/schema.ts`, SQL y snapshots en `d1-migrations`. Identidad propia UUID y `provider_id` único con prefijo `lichess:`; los nombres no vinculan cuentas. Perfiles privados y marca de desarrollo.
 
-| Tabla           | Contenido y restricciones                                                                      |
-| --------------- | ---------------------------------------------------------------------------------------------- |
-| users           | UUID propio, Discord ID único, nombre, perfil privado, marca de identidad de desarrollo, fecha |
-| user_sessions   | UUID, FK usuario con cascade, hash SHA-256 de token único, expiración de 8 horas               |
-| login_states    | Hash de estado OAuth, caducidad de 5 minutos, consumo atómico una vez                          |
-| login_exchanges | Hash del código de retorno de un solo uso, FK usuario, caducidad de 60 segundos                |
-| request_limits  | Contador atómico por origen de red/ruta/minuto, caducidad y limpieza                           |
-| chess_results   | UUID de partida único, FK blancas/negras con set null, PGN, resultado, motivo y fecha          |
+Sesiones de ocho horas con hash SHA-256 de token; estado OAuth ligado a verifier con cinco minutos; códigos locales de retorno de un uso y 60 segundos. El token Lichess solo se usa para obtener `/api/account`, se descarta y no se persiste. Los contadores de peticiones son atómicos y caducan. El cron limpia los registros expirados.
 
-Tokens Discord se utilizan para obtener `/users/@me` y se descartan. No se guardan access/refresh tokens Discord. Los tokens de sesión se almacenan solo como hash; la cuenta no se enlaza por nombres ni correos.
+`chess_results` conserva UUID de partida, jugadores, PGN, resultado, motivo y fecha. Guardado idempotente; el servidor reintenta mientras vive la sala. No hay cola duradera para fallos del proceso ni restauración de partidas activas.
 
-Local: `.local/pixelspace.sqlite`, ignorado por Git. El adaptador aplica migraciones pendientes dentro de transacciones. D1: `wrangler d1 migrations apply DB --local/--remote --config apps/api/wrangler.jsonc`. No usar `--remote` contra una base no confirmada. No modificar SQL ya aplicado; añadir migraciones. El esquema de la Fase 0 PostgreSQL se sustituyó antes de contener datos reales.
+La migración 0002 renombra la columna de identidad heredada, conserva cuentas/resultados, separa identidades con prefijo `legacy:` y revoca sesiones del proveedor retirado. Las migraciones históricas no se reescriben. No se transfieren resultados por coincidencia de nombre a una cuenta Lichess nueva.
 
-El cron del Worker limpia sesiones/estados/códigos y contadores caducados cada día. Los resultados se guardan de forma idempotente; si falla la API, el servidor muestra el fallo y reintenta cada 30 segundos mientras vive la sala. No hay cola duradera: un fallo de proceso antes del guardado puede perder el resultado. Partidas en curso no se restauran tras reinicio.
+Local: `.local/pixelspace.sqlite`, ignorado. El adaptador aplica migraciones pendientes en transacciones. D1 existente: `npx wrangler d1 migrations apply DB --remote --config apps/api/wrangler.jsonc`. Verificar cuenta y base antes de migrar. Nunca borrar o recrear la base para cambiar de proveedor.
 
-Antes de beta pública: política de retención definitiva, exportación/borrado de cuentas, backups D1 y simulacro de restauración; control de registros de menores por territorios de lanzamiento. No se han implementado esas puertas por el mero hecho de existir una base de datos.
+Pendientes de producto: política de retención, exportación/borrado de cuenta y simulacro de restauración. Estudios y progreso se guardan solo en el navegador; exportación PGN disponible.
