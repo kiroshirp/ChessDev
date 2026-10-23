@@ -7,7 +7,7 @@
     "ENVIRONMENT": "production",
     "LICHESS_CLIENT_ID": "chessdev",
     "LICHESS_REDIRECT_URI": "https://pixelspace-world.onrender.com/api/auth/lichess/callback",
-    "FRONTEND_URL": "https://kiroshirp.github.io/PixelSpace/",
+    "FRONTEND_URL": "https://kiroshirp.github.io/ChessDev/",
   },
   "d1_databases": [
     {

@@ -14,7 +14,7 @@ La mesa multijugador usa el servidor autoritativo existente con acceso directo d
 
 ## Repositorio y despliegue
 
-Sustituir la experiencia y documentación principal anteriores en `kiroshirp/PixelSpace`, manteniendo historial Git y las URLs para que la sustitución sea recuperable. Reutilizar módulos de reglas, autenticación, persistencia y red. La UI de mundo virtual queda retirada. No borrar repositorios ajenos, cuentas, bases ni secretos.
+Sustituir la experiencia y documentación principal anteriores en `kiroshirp/ChessDev`, manteniendo historial Git para que la sustitución sea recuperable; la URL pública pasa a https://kiroshirp.github.io/ChessDev/. Reutilizar módulos de reglas, autenticación, persistencia y red. La UI de mundo virtual queda retirada. No borrar repositorios ajenos, cuentas, bases ni secretos.
 
 Sin cargos: Pages, Render Free, Workers/D1 Free. No Blaze ni servicios pagados. API pública a través de Render `/api`; Worker sigue controlando D1 y OAuth. No publicar rutas internas. Ver `docs/free-hosting.md`.
 

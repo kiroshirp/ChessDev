@@ -9,3 +9,5 @@ Sin cargos ni facturación. GitHub Pages para frontend, Cloudflare Workers/D1 Fr
 API pública por `https://pixelspace-world.onrender.com/api`, upstream del servidor en Cloudflare. No publicar `/internal`. Callback público `/api/auth/lichess/callback`. La red local no alcanza workers.dev directamente.
 
 El usuario autoriza publicar una vez conectado y verificado el conjunto. TypeScript, lint, tests, build y E2E antes de publicar. No funciones ni cifras simuladas. Sin motor de evaluación, Elo, tienda, pagos o entrenadores IA en esta entrega.
+
+23 de octubre de 2026, cambio posterior: el usuario pide retirar PixelSpace de la URL pública. Renombrar el repositorio a **kiroshirp/ChessDev**, publicar en **https://kiroshirp.github.io/ChessDev/** y actualizar base de assets y FRONTEND_URL del Worker. Conservar historial y direcciones de servicios internos; el callback Lichess en Render no cambia.

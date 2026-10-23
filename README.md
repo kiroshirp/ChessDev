@@ -1,6 +1,6 @@
 # ChessDev
 
-Plataforma de ajedrez en español con la identidad visual de ChessDev: antracita, marfil, tipografía marcada y tarjetas con sombras. Sustituye la experiencia pública de PixelSpace. El repositorio conserva su nombre y su historial para mantener las URLs e infraestructura existentes.
+Plataforma de ajedrez en español con la identidad visual de ChessDev: antracita, marfil, tipografía marcada y tarjetas con sombras. Sustituye la experiencia pública de PixelSpace. Repositorio ChessDev y web pública en https://kiroshirp.github.io/ChessDev/. Se conserva el historial y la infraestructura de cuentas y partidas existente.
 
 ## Funciones disponibles
 
@@ -24,7 +24,7 @@ Para jugar con dos clientes locales, abre dos contextos independientes, entra en
 
 `npm run check`: TypeScript, lint, pruebas unitarias y builds.
 `npm run test:e2e`: dos clientes, partida hasta mate, historial, PGN, persistencia local, entrenamiento y móvil.
-`npm run test:pages`: comprobación de producción bajo `/PixelSpace/` después de compilar con `VITE_BASE_PATH=/PixelSpace/`.
+`npm run test:pages`: comprobación de producción bajo `/ChessDev/` después de compilar con `VITE_BASE_PATH=/ChessDev/`.
 
 ## Infraestructura gratuita
 

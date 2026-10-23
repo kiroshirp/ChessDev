@@ -12,7 +12,7 @@ Acceso público actual del API: `https://pixelspace-world.onrender.com/api`; `VI
 
 Si el usuario acepta Render, iniciar sesión o crear su cuenta revisando sus términos. Sin método de pago, seleccionar workspace gratuito y servicio **Free**. Si el proveedor exige tarjeta, detener el alta: no introducirla ni actualizar de plan. Revisar el resumen antes de crear recursos. Se puede conectar solo el repositorio PixelSpace o usar su URL pública en alta manual (esta última evita otorgar acceso a GitHub).
 
-En Blueprint usar este repositorio y `render.yaml`. Alternativa manual: Web Service, Public Git Repository `https://github.com/kiroshirp/PixelSpace`, Dockerfile `infrastructure/world.Dockerfile`, contexto raíz, plan Free, `/health`, autodeploy desactivado y variables del YAML. `PORT` lo asigna Render y ya lo admite el servidor.
+En Blueprint usar este repositorio y `render.yaml`. Alternativa manual: Web Service, Public Git Repository `https://github.com/kiroshirp/ChessDev`, Dockerfile `infrastructure/world.Dockerfile`, contexto raíz, plan Free, `/health`, autodeploy desactivado y variables del YAML. `PORT` lo asigna Render y ya lo admite el servidor.
 
 `API_URL` debe ser el HTTPS real del Worker Cloudflare. `WORLD_SECRET` e `INTERNAL_SECRET` son dos secretos aleatorios distintos de 32+ caracteres, iguales a sus respectivos valores del Worker. Introducirlos privadamente en el panel, no en Git ni en el chat. Lichess usa PKCE y no necesita client secret.
 

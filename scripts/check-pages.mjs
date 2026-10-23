@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath, URL } from 'node:url';
 import { chromium, expect } from '@playwright/test';
 
-// Run after building with VITE_BASE_PATH=/PixelSpace/.
+// Run after building with VITE_BASE_PATH=/ChessDev/.
 const root = fileURLToPath(new URL('../', import.meta.url));
 const server = spawn(
   process.execPath,
@@ -12,7 +12,7 @@ const server = spawn(
     'preview',
     'apps/web',
     '--base',
-    '/PixelSpace/',
+    '/ChessDev/',
     '--host',
     '127.0.0.1',
     '--port',
@@ -30,7 +30,7 @@ server.stderr.on('data', (chunk) => {
 });
 let browser;
 try {
-  const url = 'http://127.0.0.1:4175/PixelSpace/';
+  const url = 'http://127.0.0.1:4175/ChessDev/';
   let ready = false;
   for (let attempt = 0; attempt < 40; attempt++) {
     if (server.exitCode !== null) throw new Error(output);
@@ -48,7 +48,7 @@ try {
   // Serve the built assets locally under the real production origin. The API
   // must continue rejecting localhost; a production smoke must exercise CORS
   // with the same origin visitors use on Pages.
-  const publicUrl = 'https://kiroshirp.github.io/PixelSpace/';
+  const publicUrl = 'https://kiroshirp.github.io/ChessDev/';
   await page.route(`${publicUrl}**`, async (route) => {
     const asset = new URL(route.request().url());
     const response = await route.fetch({
@@ -81,7 +81,7 @@ try {
   await page.waitForLoadState('networkidle', { timeout: 95000 });
   assert.deepEqual(errors, []);
   console.log(
-    'ChessDev production smoke: /PixelSpace/, assets, Lichess required for online play, local analysis, no development bypass and no browser errors: OK',
+    'ChessDev production smoke: /ChessDev/, assets, Lichess required for online play, local analysis, no development bypass and no browser errors: OK',
   );
 } finally {
   await browser?.close();

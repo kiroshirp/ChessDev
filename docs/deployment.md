@@ -20,6 +20,6 @@ Desplegar primero el servidor desde un commit probado. Evitar partidas en curso 
 
 ## GitHub Pages
 
-`pages.yml` declara las URLs públicas confirmadas, compila con base `/PixelSpace/`, ejecuta TypeScript/lint/tests/build, E2E, infraestructura pública y smoke de producción antes del deploy. No depende de variables antiguas del repositorio. La rama de preparación no publica Pages; publicar main solo tras conectar API y servidor.
+`pages.yml` declara las URLs públicas confirmadas, compila con base `/ChessDev/`, ejecuta TypeScript/lint/tests/build, E2E, infraestructura pública y smoke de producción antes del deploy. No depende de variables antiguas del repositorio. La rama de preparación no publica Pages; publicar main solo tras conectar API y servidor.
 
 `npm run check`, `npm run test:e2e`, `npm run test:public` y `npm run test:pages` verifican cada capa. Los dos últimos necesitan las URLs y build de producción. No afirmar prueba real de OAuth o dos cuentas remotas si no se ha realizado.

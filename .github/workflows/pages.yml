@@ -22,7 +22,7 @@ jobs:
       - run: npm ci
       - run: npm run check
         env:
-          VITE_BASE_PATH: /PixelSpace/
+          VITE_BASE_PATH: /ChessDev/
           VITE_API_URL: https://pixelspace-world.onrender.com/api
           VITE_WORLD_URL: https://pixelspace-world.onrender.com
       - run: npx playwright install --with-deps chromium
