@@ -13,3 +13,5 @@ Límites: cuatro líneas introductorias, tres problemas; sin motor de evaluació
 Publicación confirmada: [Pages](https://github.com/kiroshirp/PixelSpace/actions/runs/39993386260) y CI aprobaron el commit 2962e2e. La URL pública https://kiroshirp.github.io/PixelSpace/ muestra ChessDev y el botón Entrar con Lichess apunta al proxy comprobado. Se revisa además el contraste de la ilustración en anchos intermedios.
 
 Corrección móvil: 31 pruebas unitarias y 8 E2E aprobados localmente, incluyendo comparación de las doce piezas SVG, anchos 320/390/430, flujo OAuth con proveedor simulado sin cookies y con capacidades lentas, y rechazo de retorno desde otra pestaña. Capturas de móvil y escritorio revisadas. Pendiente publicar frontend/Worker/proxy y comprobar autorización con cuenta real; no se ha probado Safari en dispositivo físico.
+
+Servicios de la corrección móvil verificados: Worker 09985e12-9ba7-46b2-937b-d3e22c4b4a10 publicado, proxy Render actualizado desde 83ee762 y prueba pública aprobada (start OAuth 200, redirección al frontend 302, internos y acceso antiguo 404). CI de la rama aprobado (40003739167). Sin cambios de esquema ni datos.
