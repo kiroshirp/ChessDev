@@ -1707,3 +1707,12 @@ textarea {
     color: #aaa4b1;
   }
 }
+@media (max-width: 600px) {
+  .journey > div {
+    flex-basis: calc(100% - 53px);
+  }
+  .journey .button {
+    margin-left: 48px;
+    flex-basis: calc(100% - 48px);
+  }
+}
