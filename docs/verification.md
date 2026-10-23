@@ -9,3 +9,5 @@ Cambio posterior solicitado: acceso con Lichess mediante OAuth PKCE S256, sin cl
 GitHub: CI aprobado para la rama de preparación fcd4b37 (run 39990788535). La actualización de la variable pública de Actions exigió reautenticación y no se confirmó; las URLs correctas se declaran ahora en el workflow versionado. Servicios conectados y verificados antes de publicar main/Pages. El frontend de producción supera el smoke bajo /PixelSpace/.
 
 Límites: cuatro líneas introductorias, tres problemas; sin motor de evaluación, rating, repetición espaciada automática o sincronización de estudios entre equipos. No se ha probado carga ni juego con dos cuentas remotas. Resultados finalizados persistidos en D1; partidas activas efímeras en Render.
+
+Publicación confirmada: [Pages](https://github.com/kiroshirp/PixelSpace/actions/runs/39993386260) y CI aprobaron el commit 2962e2e. La URL pública https://kiroshirp.github.io/PixelSpace/ muestra ChessDev y el botón Entrar con Lichess apunta al proxy comprobado. Se revisa además el contraste de la ilustración en anchos intermedios.

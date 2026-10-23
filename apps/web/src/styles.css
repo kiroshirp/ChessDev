@@ -1716,3 +1716,8 @@ textarea {
     flex-basis: calc(100% - 48px);
   }
 }
+@media (max-width: 1350px) {
+  .hero-rook {
+    opacity: 0.17;
+  }
+}
