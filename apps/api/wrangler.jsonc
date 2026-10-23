@@ -6,7 +6,7 @@
   "vars": {
     "ENVIRONMENT": "production",
     "DISCORD_CLIENT_ID": "1561437644226044104",
-    "DISCORD_REDIRECT_URI": "https://pixelspace-api.kiroshirp.workers.dev/auth/discord/callback",
+    "DISCORD_REDIRECT_URI": "https://pixelspace-world.onrender.com/api/auth/discord/callback",
     "FRONTEND_URL": "https://kiroshirp.github.io/PixelSpace/",
   },
   "d1_databases": [

@@ -13,6 +13,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: API_PROXY_ENABLED
+        value: 'true'
       - key: HOST
         value: 0.0.0.0
       - key: ALLOWED_ORIGINS

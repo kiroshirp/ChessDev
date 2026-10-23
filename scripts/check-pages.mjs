@@ -55,22 +55,19 @@ try {
   });
   page.on('requestfailed', (request) => errors.push(`Failed request: ${request.url()}`));
   await page.goto(url);
-  await expect(
-    page.getByRole('heading', { name: 'Tu próxima jugada empieza aquí.' }),
-  ).toBeVisible();
-  await expect(page.locator('.login-card')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Tu próxima buena jugada.' })).toBeVisible();
+  await expect(page.locator('.hero')).toBeVisible();
   await expect(page.locator('canvas')).toHaveCount(0);
   await expect(page.locator('.development-login')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Mi cuenta', exact: true })).toHaveCount(0);
-  await page.getByRole('button', { name: 'Cómo jugar', exact: true }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Muévete. Encuentra una mesa. Juega.' }),
-  ).toBeVisible();
-  await page.getByRole('button', { name: 'Volver a la academia' }).click();
-  await expect(page.locator('.login-card')).toBeVisible();
+  await page.getByRole('button', { name: 'Jugar', exact: true }).click();
+  await expect(page.locator('.account-layout')).toBeVisible();
+  await expect(page.locator('.development-login')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Abrir mesa compartida' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Tablero de análisis', exact: true }).click();
+  await expect(page.getByRole('group', { name: 'Tablero de ajedrez' })).toBeVisible();
   assert.deepEqual(errors, []);
   console.log(
-    'Pages production smoke: /PixelSpace/, assets, mandatory sign-in, no development bypass and no browser errors: OK',
+    'ChessDev production smoke: /PixelSpace/, assets, Discord required for online play, local analysis, no development bypass and no browser errors: OK',
   );
 } finally {
   await browser?.close();

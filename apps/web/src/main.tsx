@@ -1,146 +1,297 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { academyZones, academyObjects } from '@pixelspace/map-engine';
+import { Chess, type Square, type PieceSymbol } from 'chess.js';
 import type { Identity } from '@pixelspace/auth';
-import type { Position } from '@pixelspace/world-engine';
-import type { SceneControls } from './scene';
-import { World } from './World';
+import { Board } from './Board';
 import { ChessBoard } from './ChessBoard';
-import { WorldConnection, connectWorld } from './network';
-import { API_URL, WORLD_URL, api, login, logout, clearToken } from './api';
-import { es, en, errors } from './copy';
+import { API_URL, WORLD_URL, api, login, logout } from './api';
+import { connectWorld, type WorldConnection } from './network';
+import { es } from './copy';
+import {
+  openings,
+  puzzles,
+  position,
+  loadStudies,
+  loadProgress,
+  downloadPgn,
+  type Progress,
+} from './training';
 import './styles.css';
-interface Capabilities {
-  discord: boolean;
-  developmentAuth: boolean;
-}
+type Page =
+  | 'panel'
+  | 'play'
+  | 'profile'
+  | 'studies'
+  | 'courses'
+  | 'openings'
+  | 'puzzles'
+  | 'review'
+  | 'woodpecker'
+  | 'analysis'
+  | 'stats';
+const groups: { name: string; items: [Page, string, string][] }[] = [
+  {
+    name: 'PRINCIPAL',
+    items: [
+      ['panel', 'Panel', '▦'],
+      ['play', 'Jugar', '♞'],
+      ['profile', 'Mi perfil', '♙'],
+    ],
+  },
+  {
+    name: 'APRENDER',
+    items: [
+      ['studies', 'Mis estudios', '▤'],
+      ['courses', 'Cursos', '▥'],
+      ['openings', 'Entrenador de aperturas', '♘'],
+    ],
+  },
+  {
+    name: 'PRÁCTICA',
+    items: [
+      ['puzzles', 'Problemas', '◈'],
+      ['review', 'Repaso', '↻'],
+      ['woodpecker', 'Woodpecker', '♟'],
+    ],
+  },
+  {
+    name: 'ANALIZAR',
+    items: [
+      ['analysis', 'Tablero de análisis', '⌕'],
+      ['stats', 'Estadísticas', '▥'],
+    ],
+  },
+];
 function App() {
-  const [locale, setLocale] = useState<'es' | 'en'>('es'),
-    t = locale === 'es' ? es : en;
-  const [tab, setTab] = useState<'world' | 'guide' | 'account'>('world'),
-    [user, setUser] = useState<Identity | null>(null),
-    [capabilities, setCapabilities] = useState<Capabilities | null>(null),
-    [error, setError] = useState(''),
-    [busy, setBusy] = useState(false),
-    [name, setName] = useState(''),
-    [connection, setConnection] = useState<WorldConnection | null>(null),
-    [, render] = useState(0),
-    [position, setPosition] = useState<Position>({ x: 0, y: 0 }),
-    [zoom, setZoom] = useState(1),
-    [color, setColor] = useState(0x9f88e5),
-    [history, setHistory] = useState<{ id: string; result: string; reason: string; pgn: string }[]>(
-      [],
-    );
-  const worldButton = useRef<HTMLButtonElement>(null),
-    connectionRef = useRef<WorldConnection | null>(null),
-    mounted = useRef(true);
-  const controls = useRef<SceneControls>({
-    zoom: 1,
-    input: { x: 0, y: 0 },
-    connection: null,
-    locale: 'es',
-  }).current;
-  controls.zoom = zoom;
-  controls.connection = connection;
-  controls.locale = locale;
-  const refresh = useCallback(() => {
-      if (mounted.current) render((n) => n + 1);
-    }, []),
-    onPosition = useCallback((p: Position) => setPosition(p), []),
-    onEscape = useCallback(() => worldButton.current?.focus(), []);
+  const [page, setPage] = useState<Page>('panel'),
+    [menu, setMenu] = useState(false);
+  const [studies, setStudies] = useState(loadStudies),
+    [progress, setProgress] = useState(loadProgress);
+  const [notice, setNotice] = useState(''),
+    [game, setGame] = useState(() => new Chess());
+  const [pgn, setPgn] = useState(''),
+    [studyName, setStudyName] = useState('Mi nuevo estudio'),
+    [studyId, setStudyId] = useState<string | null>(null);
+  const [flipped, setFlipped] = useState(false),
+    [cursor, setCursor] = useState<number | null>(null);
+  const [openingIndex, setOpeningIndex] = useState(0),
+    [step, setStep] = useState(0);
+  const [puzzleIndex, setPuzzleIndex] = useState(0),
+    [solved, setSolved] = useState(false),
+    [hint, setHint] = useState(false);
+  const [user, setUser] = useState<Identity | null>(null),
+    [caps, setCaps] = useState<{ discord: boolean; developmentAuth: boolean } | null>(null);
+  const [busy, setBusy] = useState(false),
+    [devName, setDevName] = useState('');
+  const [connection, setConnection] = useState<WorldConnection | null>(null),
+    [, render] = useState(0);
+  const [games, setGames] = useState<{ id: string; pgn: string; result: string; reason: string }[]>(
+    [],
+  );
+  const connectionRef = useRef<WorldConnection | null>(null);
+  const mounted = useRef(true);
   useEffect(() => {
     mounted.current = true;
+    if (API_URL)
+      void (async () => {
+        try {
+          const capabilities = await api<{ discord: boolean; developmentAuth: boolean }>(
+            '/capabilities',
+          );
+          if (!mounted.current) return;
+          setCaps(capabilities);
+          const fragment = new URLSearchParams(location.hash.slice(1));
+          if (fragment.has('login')) {
+            history.replaceState(null, '', location.pathname + location.search);
+            const identity = await login('/auth/exchange', { code: fragment.get('login') });
+            if (mounted.current) setUser(identity);
+          } else if (fragment.has('autherror')) {
+            history.replaceState(null, '', location.pathname + location.search);
+            setNotice('Discord no ha autorizado el acceso. Puedes volver a intentarlo.');
+          } else {
+            try {
+              const result = await api<{ user: Identity }>('/auth/me');
+              if (mounted.current) setUser(result.user);
+            } catch {
+              /* Anonymous visitor. */
+            }
+          }
+        } catch {
+          if (mounted.current)
+            setNotice(
+              'No se ha podido conectar con el servicio de cuentas. Las herramientas locales siguen disponibles.',
+            );
+        }
+      })();
     return () => {
       mounted.current = false;
       void connectionRef.current?.leave();
     };
   }, []);
   useEffect(() => {
-    let stopped = false;
-    async function initialize() {
-      if (!API_URL) return;
-      try {
-        const caps = await api<Capabilities>('/capabilities');
-        if (stopped) return;
-        setCapabilities(caps);
-        const fragment = new URLSearchParams(location.hash.slice(1)),
-          code = fragment.get('login');
-        if (code) {
-          historyReplace();
-          const identity = await login('/auth/exchange', { code });
-          if (!stopped) setUser(identity);
-        } else if (fragment.has('autherror')) {
-          historyReplace();
-          setError(t.authDenied);
-        } else {
-          try {
-            const state = await api<{ user: Identity }>('/auth/me');
-            if (!stopped) setUser(state.user);
-          } catch {
-            /* no active session */
-          }
-        }
-      } catch {
-        if (!stopped) setError(t.error);
-      }
-    }
-    void initialize();
+    if (!user || !['profile', 'stats', 'panel'].includes(page)) return;
+    let active = true;
+    api<{ games: typeof games }>('/games')
+      .then((r) => {
+        if (active) setGames(r.games);
+      })
+      .catch(() => {
+        if (active) setNotice('No se ha podido cargar el historial de partidas.');
+      });
     return () => {
-      stopped = true;
+      active = false;
     };
-  }, []);
-  function historyReplace() {
-    window.history.replaceState(null, '', location.pathname + location.search);
+  }, [user, page]);
+  function navigate(next: Page) {
+    setPage(next);
+    setMenu(false);
+    setNotice('');
+    setHint(false);
+    setCursor(null);
+    if (['puzzles', 'woodpecker', 'review'].includes(next)) {
+      setPuzzleIndex(0);
+      setSolved(false);
+      setGame(position(puzzles[0]!.setup));
+    } else if (next === 'openings') {
+      setStep(0);
+      setGame(new Chess());
+    } else if (next === 'analysis' || next === 'studies') {
+      setGame(new Chess());
+      setStudyId(null);
+      setPgn('');
+      setStudyName('Mi nuevo estudio');
+    }
+    window.scrollTo({ top: 0 });
   }
-  async function connect() {
+  function saveProgress(next: Progress) {
+    try {
+      localStorage.setItem('chessdev.progress', JSON.stringify(next));
+      setProgress(next);
+    } catch {
+      setNotice('El navegador no permite guardar el progreso. Habilita el almacenamiento local.');
+    }
+  }
+  function record(kind: 'solved' | 'completed', id: string) {
+    saveProgress({
+      ...progress,
+      [kind]: [...new Set([...progress[kind], id])],
+      dates: [...new Set([...progress.dates, new Date().toLocaleDateString('sv-SE')])],
+    });
+  }
+  function playMove(from: Square, to: Square, promotion: PieceSymbol) {
+    const next = new Chess(game.fen());
+    const move = next.move({ from, to, promotion });
+    if (!move) return;
+    if (['puzzles', 'review', 'woodpecker'].includes(page)) {
+      if (solved) return;
+      const ok = move.san === puzzles[puzzleIndex]!.solution;
+      const updated = { ...progress, attempts: progress.attempts + 1 };
+      if (!ok) {
+        saveProgress(updated);
+        setNotice('Esa jugada es legal, pero no resuelve el ejercicio. Prueba de nuevo.');
+        return;
+      }
+      saveProgress({
+        ...updated,
+        solved: [...new Set([...progress.solved, puzzles[puzzleIndex]!.id])],
+        dates: [...new Set([...progress.dates, new Date().toLocaleDateString('sv-SE')])],
+      });
+      setGame(next);
+      setSolved(true);
+      setNotice('¡Correcto! Has encontrado el jaque mate.');
+      return;
+    }
+    if (page === 'openings') {
+      const expected = openings[openingIndex]!.moves[step];
+      if (move.san !== expected) {
+        setNotice('Jugada legal, pero esta línea continúa con ' + expected + '.');
+        return;
+      }
+      const line = openings[openingIndex]!;
+      const nextStep = step + 1;
+      setStep(nextStep);
+      setGame(position(line.moves.slice(0, nextStep)));
+      setNotice('');
+      if (nextStep === line.moves.length) {
+        record('completed', line.id);
+        setNotice('Línea completada. Ya puedes repasarla o elegir otra apertura.');
+      }
+      return;
+    }
+    const historyMoves = game.history();
+    const full = position(historyMoves);
+    full.move({ from, to, promotion });
+    setGame(full);
+    setPgn(full.pgn());
+    setCursor(null);
+    setNotice('');
+  }
+  function importPgn(text = pgn) {
+    try {
+      const next = new Chess();
+      next.loadPgn(text);
+      if (!next.history().length) throw new Error();
+      setGame(next);
+      setPgn(next.pgn());
+      setCursor(null);
+      setNotice('Partida importada. Recorre las jugadas o continúa en el tablero.');
+      return true;
+    } catch {
+      setNotice('PGN no válido o sin jugadas. Revisa la notación antes de importarlo.');
+      return false;
+    }
+  }
+  function saveStudy() {
+    if (!studyName.trim() || !game.history().length) {
+      setNotice('Escribe un nombre y añade al menos una jugada al estudio.');
+      return;
+    }
+    const study = {
+      id: studyId ?? crypto.randomUUID(),
+      name: studyName.trim().slice(0, 100),
+      pgn: game.pgn(),
+      updated: new Date().toISOString(),
+    };
+    const next = [study, ...studies.filter((s) => s.id !== study.id)];
+    try {
+      localStorage.setItem('chessdev.studies', JSON.stringify(next));
+      setStudies(next);
+      setStudyId(study.id);
+      setNotice('Estudio guardado en este navegador. Puedes exportarlo como PGN.');
+    } catch {
+      setNotice('No se ha podido guardar. Exporta el PGN para conservarlo.');
+    }
+  }
+  async function startOnline() {
     if (!user || busy) return;
+    if (connection?.status === 'connected') {
+      connection.send('chess:join');
+      return;
+    }
     setBusy(true);
-    setError('');
+    setNotice(
+      'Conectando con la sala. El servidor gratuito puede tardar hasta 90 segundos en despertar.',
+    );
     try {
       await connectionRef.current?.leave();
+      const health = await fetch(`${WORLD_URL.replace(/\/$/, '')}/health`, {
+        signal: AbortSignal.timeout(90000),
+      });
+      if (!health.ok) throw new Error();
       const auth = await api<{ ticket: string }>('/world/ticket', {});
-      const next = await connectWorld(WORLD_URL, auth.ticket, refresh);
+      const next = await connectWorld(WORLD_URL, auth.ticket, () => {
+        if (mounted.current) render((n) => n + 1);
+      });
+      if (!mounted.current) {
+        await next.leave();
+        return;
+      }
       connectionRef.current = next;
       setConnection(next);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : t.error);
-    } finally {
-      setBusy(false);
-    }
-  }
-  useEffect(() => {
-    if (user) void connect();
-  }, [user]);
-  useEffect(() => {
-    if (tab === 'account' && user)
-      api<{ games: typeof history }>('/games')
-        .then((r) => setHistory(r.games))
-        .catch(() => setError(t.error));
-  }, [tab, user]);
-  const connected = connection?.status === 'connected',
-    self = connection?.self,
-    near =
-      !!self &&
-      Math.hypot(self.x - academyObjects[0]!.x, self.y - academyObjects[0]!.y) <=
-        academyObjects[0]!.radius;
-  const status = connection
-    ? connection.status === 'connected'
-      ? t.connected
-      : connection.status === 'reconnecting'
-        ? t.reconnecting
-        : t.offline
-    : busy
-      ? t.connecting
-      : t.offline;
-  async function devLogin(event: React.FormEvent) {
-    event.preventDefault();
-    if (busy) return;
-    setBusy(true);
-    setError('');
-    try {
-      setUser(await login('/auth/dev', { name }));
+      next.send('chess:join');
+      setNotice('');
     } catch {
-      setError(t.error);
+      setNotice('No se ha podido abrir la sala. Comprueba tu sesión y vuelve a intentarlo.');
     } finally {
       setBusy(false);
     }
@@ -152,361 +303,755 @@ function App() {
       connectionRef.current = null;
       setConnection(null);
       setUser(null);
-      clearToken();
-      setTab('world');
+      setNotice('Sesión cerrada.');
     } catch {
-      setError(t.error);
+      setNotice('No se ha podido cerrar la sesión. Vuelve a intentarlo.');
     }
   }
-  const friendlyError = (value: string) => errors[value]?.[locale] ?? t.error;
+  const title = groups.flatMap((g) => g.items).find((i) => i[0] === page)?.[1] ?? 'Panel';
+  const puzzle = puzzles[puzzleIndex]!;
+  const shownGame = cursor === null ? game : position(game.history().slice(0, cursor));
+  const currentOpening = openings[openingIndex]!;
+  const trainingPage = ['puzzles', 'review', 'woodpecker'].includes(page);
+  function nextPuzzle() {
+    const i = (puzzleIndex + 1) % puzzles.length;
+    setPuzzleIndex(i);
+    setGame(position(puzzles[i]!.setup));
+    setSolved(false);
+    setHint(false);
+    setNotice('');
+  }
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <a className="brand" href={import.meta.env.BASE_URL}>
-          <span className="brand-mark">▦</span>
+    <div className="shell">
+      <aside className={`sidebar ${menu ? 'open' : ''}`}>
+        <button className="brand" onClick={() => navigate('panel')}>
+          <span className="brand-mark">♜</span>
           <span>
-            pixel<span className="brand-light">space</span>
-            <small>VIRTUAL WORLDS, REAL CONNECTIONS</small>
+            Chess<span className="thin">Dev</span>
+            <b>.</b>
           </span>
-        </a>
-        <div className="workspace-label">PIXELSPACE CHESS ACADEMY</div>
-        <nav aria-label={t.academy}>
-          {(['world', 'guide', 'account'] as const)
-            .filter((item) => item !== 'account' || user !== null)
-            .map((item, i) => (
-              <button
-                key={item}
-                ref={item === 'world' ? worldButton : undefined}
-                className={`nav-item ${tab === item ? 'selected' : ''}`}
-                aria-current={tab === item ? 'page' : undefined}
-                onClick={() => setTab(item)}
-              >
-                <span aria-hidden="true">{['▦', '☷', '♙'][i]}</span>
-                {t[item]}
-              </button>
-            ))}
-        </nav>
-        <div className="sidebar-note">
-          <span className="tiny-label">{t.phase}</span>
-          <p>{t.subtitle}</p>
-          <small>{t.guideFoot}</small>
+        </button>
+        <div className="workspace">
+          <span className="tiny-dot" /> TU ESPACIO DE AJEDREZ
         </div>
-        <div className="local-user">
-          <span className="user-icon">{user?.name.slice(0, 1) || 'P'}</span>
-          <div>
-            {user?.name || 'PixelSpace'}
-            <small>{user?.development ? t.devBadge : 'Discord'}</small>
-          </div>
+        <nav aria-label="Navegación principal">
+          {groups.map((group) => (
+            <div className="nav-group" key={group.name}>
+              <div className="nav-label">{group.name}</div>
+              {group.items.map(([id, label, icon]) => (
+                <button
+                  key={id}
+                  className={`nav-item ${page === id ? 'active' : ''}`}
+                  onClick={() => navigate(id)}
+                  aria-current={page === id ? 'page' : undefined}
+                >
+                  <span className="nav-icon" aria-hidden="true">
+                    {icon}
+                  </span>
+                  {label}
+                  {id === 'review' && progress.solved.length > 0 && (
+                    <span className="badge">{progress.solved.length}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          ))}
+        </nav>
+        <div className="sidebar-bottom">
+          <a href="https://lichess.org/learn" target="_blank" rel="noreferrer">
+            <span>↗</span> Aprende las reglas
+          </a>
+          <button className="account" onClick={() => navigate('profile')}>
+            <span className="avatar">{user ? user.name[0]?.toUpperCase() : '♙'}</span>
+            <span>
+              {user?.name ?? 'Tu próximo movimiento'}
+              <small>{user ? 'Mi cuenta · Discord' : 'Tu espacio empieza aquí'}</small>
+            </span>
+            <span>⋯</span>
+          </button>
         </div>
       </aside>
-      <main>
+      {menu && (
+        <button className="menu-backdrop" aria-label="Cerrar menú" onClick={() => setMenu(false)} />
+      )}
+      <main className="main">
         <header className="topbar">
-          <span>
-            PixelSpace <span className="slash">/</span> {t.academy}
-          </span>
-          <div>
-            {user && (
-              <button className="subtle" onClick={() => void signOut()}>
-                {t.logout}
-              </button>
-            )}
-            <select
-              aria-label="Idioma / Language"
-              value={locale}
-              onChange={(e) => {
-                setLocale(e.target.value as 'es' | 'en');
-                document.documentElement.lang = e.target.value;
-              }}
+          <div className="breadcrumb">
+            <button className="menu-toggle" aria-label="Abrir menú" onClick={() => setMenu(!menu)}>
+              ☰
+            </button>
+            <span>Mi espacio</span>
+            <span>/</span>
+            <strong>{title}</strong>
+          </div>
+          <div className="top-actions">
+            <span className="free-label">
+              <span className="tiny-dot" /> A tu ritmo. Sin límites.
+            </span>
+            <button
+              className="profile-dot"
+              aria-label="Abrir perfil"
+              onClick={() => navigate('profile')}
             >
-              <option value="es">ES</option>
-              <option value="en">EN</option>
-            </select>
+              {user ? user.name[0]?.toUpperCase() : '♙'}
+            </button>
           </div>
         </header>
-        <div className="page-content">
-          <div className="page-intro">
+        <div className="content">
+          <div className="page-heading">
             <div>
               <div className="eyebrow">
-                <span /> {t.phase}
+                {page === 'panel' ? 'UN POCO DE AJEDREZ. CADA DÍA.' : 'APRENDE · PRACTICA · JUEGA'}
               </div>
-              <h1>{t.title}</h1>
-              <p>{t.subtitle}</p>
-            </div>
-            {user && (
-              <div className={`session-badge ${connected ? 'is-connected' : ''}`} role="status">
-                <span />
-                {status}
-              </div>
-            )}
-          </div>
-          {error && (
-            <p className="error-message" role="alert">
-              {friendlyError(error)}
-            </p>
-          )}
-          {!user && tab !== 'guide' ? (
-            <section className="login-card">
-              <div className="academy-emblem" aria-hidden="true">
-                ♜
-              </div>
-              <div className="eyebrow">PIXELSPACE CHESS ACADEMY</div>
-              <h2>{t.loginTitle}</h2>
-              <p>{t.loginText}</p>
-              {capabilities?.discord ? (
-                <a className="primary discord-login" href={`${API_URL}/auth/discord`}>
-                  {t.login} ↗
-                </a>
-              ) : (
-                <p className="notice">{t.unconfigured}</p>
-              )}
-              <small>{t.privacy}</small>
-              {capabilities?.developmentAuth && (
-                <form className="development-login" onSubmit={(e) => void devLogin(e)}>
-                  <h3>{t.dev}</h3>
-                  <p>{t.devInfo}</p>
-                  <label>
-                    {t.name}
-                    <input
-                      required
-                      minLength={2}
-                      maxLength={24}
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      autoComplete="off"
-                    />
-                  </label>
-                  <button className="primary" disabled={busy || name.trim().length < 2}>
-                    {busy ? t.connecting : t.enter}
-                  </button>
-                </form>
-              )}
-            </section>
-          ) : tab === 'guide' ? (
-            <section className="documentation-panel">
-              <div className="eyebrow">{t.academy}</div>
-              <h2>{t.howTitle}</h2>
-              <p>{t.howText}</p>
-              <p>{t.howPrivacy}</p>
-              <button onClick={() => setTab('world')}>{t.back}</button>
-            </section>
-          ) : tab === 'account' ? (
-            <section className="documentation-panel">
-              <h2>{t.accountTitle}</h2>
-              <p>
-                {user?.name} · {user?.development ? t.devBadge : 'Discord'}
-              </p>
-              <p>{t.accountText}</p>
-              <h3>{t.recent}</h3>
-              {history.length ? (
-                history.map((game) => (
-                  <details key={game.id}>
-                    <summary>
-                      {t.result}: {game.result} · {game.reason}
-                    </summary>
-                    <pre>{game.pgn}</pre>
-                  </details>
-                ))
-              ) : (
-                <p>{t.noGames}</p>
-              )}
-            </section>
-          ) : (
-            <div className="workspace-grid">
-              <section className="room-panel">
-                <div className="room-heading">
-                  <div>
-                    <span className="room-icon">♜</span>
-                    <div>
-                      <h2>{t.academy}</h2>
-                      <p>{t.server} · Colyseus</p>
-                    </div>
-                  </div>
-                  <span className="version-chip">v0.1.0</span>
-                </div>
-                <div className="canvas-wrap">
-                  <World
-                    controls={controls}
-                    label={t.canvas}
-                    loading={t.loading}
-                    failed={t.failed}
-                    onPosition={onPosition}
-                    onEscape={onEscape}
-                  />
-                  <span className="map-caption">{t.focus}</span>
-                  {!connected && (
-                    <div className="connection-overlay">
-                      <p>{status}</p>
-                      {!busy && connection?.status !== 'reconnecting' && (
-                        <button className="primary" onClick={() => void connect()}>
-                          {t.retry}
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <div className="world-toolbar">
-                  <div className="room-portals" aria-label={t.menu}>
-                    {academyZones.map((zone) => (
-                      <button
-                        key={zone.id}
-                        disabled={!connected}
-                        onClick={() => connection?.send('world:portal', zone.id)}
-                      >
-                        {zone.label[locale]}
-                      </button>
-                    ))}
-                  </div>
-                  <select
-                    aria-label={t.zoom}
-                    value={zoom}
-                    onChange={(e) => setZoom(Number(e.target.value))}
-                  >
-                    <option value="1">100%</option>
-                    <option value="1.25">125%</option>
-                    <option value="1.5">150%</option>
-                  </select>
-                </div>
-                <div className="keyboard-hint">{t.controls}</div>
-              </section>
-              <aside className="inspector">
-                <section className="info-card">
-                  <h2>
-                    {t.people}{' '}
-                    <span className="people-count" data-testid="player-count">
-                      {connection?.players.filter((p) => p.online).length ?? 0}
-                    </span>
-                  </h2>
-                  <ul className="players-list">
-                    {connection?.players.map((p) => (
-                      <li
-                        key={p.id}
-                        data-testid={`player-${p.name}`}
-                        data-x={Math.round(p.x)}
-                        data-y={Math.round(p.y)}
-                      >
-                        <span style={{ background: `#${p.color.toString(16)}` }} />
-                        <div>
-                          {p.name}
-                          <small>
-                            {p.development ? t.devBadge : 'Discord'}
-                            {p.online ? '' : ` · ${t.reconnecting}`}
-                          </small>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="position">
-                    <span>{t.position}</span>
-                    <output data-testid="position">
-                      {Math.round(position.x)}, {Math.round(position.y)}
-                    </output>
-                  </div>
-                </section>
-                <section className="info-card">
-                  <h2>{t.table}</h2>
-                  <p>{t.friendly}</p>
-                  <div className="table-icon" aria-hidden="true">
-                    ♟ ♞ ♜
-                  </div>
-                  {near ? (
-                    <button
-                      className="primary"
-                      disabled={!connected}
-                      onClick={() => connection?.send('world:interact', 'table-1')}
-                    >
-                      {t.interact} <kbd>E</kbd>
-                    </button>
-                  ) : (
-                    <p>{t.near}</p>
-                  )}
-                </section>
-                <section className="info-card">
-                  <h2>{t.color}</h2>
-                  <div className="swatches">
-                    {(
-                      [
-                        [0x9f88e5, t.purple],
-                        [0x65ba9c, t.mint],
-                        [0xd3ac62, t.gold],
-                      ] as const
-                    ).map(([value, label]) => (
-                      <button
-                        key={value}
-                        aria-label={label}
-                        aria-pressed={color === value}
-                        style={{ background: `#${value.toString(16)}` }}
-                        onClick={() => {
-                          setColor(value);
-                          connection?.send('world:appearance', value);
-                        }}
-                      >
-                        {color === value ? '✓' : ''}
-                      </button>
-                    ))}
-                  </div>
-                </section>
-                {connection?.error && (
-                  <p role="alert" className="error-message">
-                    {friendlyError(connection.error)}
-                  </p>
+              <h1>
+                {page === 'panel' ? (
+                  <>
+                    Tu próxima <span>buena jugada.</span>
+                  </>
+                ) : (
+                  title
                 )}
-              </aside>
-              <div className="touch-controls" aria-label={t.movement}>
+              </h1>
+              <p>
+                {page === 'panel'
+                  ? 'Un lugar para aprender, jugar y disfrutar del camino.'
+                  : 'Concéntrate en el tablero. El resto puede esperar.'}
+              </p>
+            </div>
+            <span className="heading-symbol" aria-hidden="true">
+              ✳
+            </span>
+          </div>
+          {notice && (
+            <div className="notice" role="status">
+              {notice}
+              <button aria-label="Cerrar aviso" onClick={() => setNotice('')}>
+                ×
+              </button>
+            </div>
+          )}
+          {page === 'panel' && (
+            <>
+              <div className="dashboard-grid">
+                <section className="hero card">
+                  <div className="eyebrow">
+                    <span className="tiny-dot" /> EL AJEDREZ NOS CONECTA
+                  </div>
+                  <h2>
+                    Haz espacio
+                    <br />
+                    para el <span>ajedrez.</span>
+                  </h2>
+                  <p>
+                    Una nueva idea. Una partida más.
+                    <br />
+                    Un pequeño paso hacia tu mejor versión.
+                  </p>
+                  <button className="button cream" onClick={() => navigate('puzzles')}>
+                    Empezar a entrenar <span>↗</span>
+                  </button>
+                  <div className="hero-rook" aria-hidden="true">
+                    ♜
+                  </div>
+                  <span className="hero-stamp">
+                    TU RITMO.
+                    <br />
+                    TU SIGUIENTE NIVEL.
+                  </span>
+                </section>
+                <section className="daily card">
+                  <div className="card-top">
+                    <span className="eyebrow">EL RETO DE HOY</span>
+                    <span className="pill">Mate en una</span>
+                  </div>
+                  <div className="mini-board">
+                    <Board fen={position(puzzles[0]!.setup).fen()} interactive={false} />
+                  </div>
+                  <div className="daily-foot">
+                    <div>
+                      <h3>Una jugada lo cambia todo.</h3>
+                      <p>Juegan negras. ¿Ves el mate?</p>
+                    </div>
+                    <button
+                      className="round-button"
+                      aria-label="Resolver el reto"
+                      onClick={() => navigate('puzzles')}
+                    >
+                      ↗
+                    </button>
+                  </div>
+                </section>
+              </div>
+              <div className="section-heading">
+                <h2>
+                  Encuentra tu siguiente paso<span>.</span>
+                </h2>
+                <span>A tu manera, cada día</span>
+              </div>
+              <div className="action-grid">
                 {(
                   [
-                    [0, -1, t.up, '↑'],
-                    [-1, 0, t.left, '←'],
-                    [0, 1, t.down, '↓'],
-                    [1, 0, t.right, '→'],
+                    {
+                      id: 'play',
+                      icon: '♞',
+                      title: 'Vamos a jugar',
+                      text: 'Comparte tablero. Disfruta la partida.',
+                      tag: 'CON OTRA PERSONA',
+                    },
+                    {
+                      id: 'studies',
+                      icon: '▤',
+                      title: 'Construye tus ideas',
+                      text: 'Tus líneas, tus notas, tu ajedrez.',
+                      tag: 'ESTUDIOS PGN',
+                    },
+                    {
+                      id: 'analysis',
+                      icon: '⌕',
+                      title: 'Vuelve a esa partida',
+                      text: 'Explora cada posición con calma.',
+                      tag: 'TABLERO DE ANÁLISIS',
+                    },
                   ] as const
-                ).map(([x, y, label, arrow]) => (
+                ).map((item) => (
                   <button
-                    key={label}
-                    aria-label={label}
-                    disabled={!connected}
-                    onPointerDown={(e) => {
-                      e.currentTarget.setPointerCapture(e.pointerId);
-                      controls.input = { x, y };
-                    }}
-                    onPointerUp={() => {
-                      controls.input = { x: 0, y: 0 };
-                    }}
-                    onLostPointerCapture={() => {
-                      controls.input = { x: 0, y: 0 };
-                    }}
-                    onPointerCancel={() => {
-                      controls.input = { x: 0, y: 0 };
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === ' ' || e.key === 'Enter') {
-                        e.preventDefault();
-                        controls.input = { x, y };
-                      }
-                    }}
-                    onKeyUp={() => {
-                      controls.input = { x: 0, y: 0 };
-                    }}
-                    onBlur={() => {
-                      controls.input = { x: 0, y: 0 };
-                    }}
+                    className="action-card card"
+                    key={item.id}
+                    onClick={() => navigate(item.id)}
                   >
-                    {arrow}
+                    <div className="action-card-top">
+                      <span className="feature-icon">{item.icon}</span>
+                      <span>↗</span>
+                    </div>
+                    <small>{item.tag}</small>
+                    <h3>{item.title}</h3>
+                    <p>{item.text}</p>
                   </button>
                 ))}
               </div>
+              <div className="section-heading">
+                <h2>
+                  Empieza con una buena apertura<span>.</span>
+                </h2>
+                <button className="text-button" onClick={() => navigate('courses')}>
+                  Ver los cursos <span>↗</span>
+                </button>
+              </div>
+              <div className="course-grid">
+                {openings.slice(0, 3).map((opening, i) => (
+                  <button
+                    className="course-card card"
+                    key={opening.id}
+                    onClick={() => {
+                      navigate('openings');
+                      setOpeningIndex(i);
+                    }}
+                  >
+                    <div className={`course-art art-${i}`}>
+                      <span>{['♘', '♗', '♟'][i]}</span>
+                      <div className="art-grid" />
+                      <span className="course-free">GRATIS</span>
+                    </div>
+                    <div className="course-info">
+                      <small>{opening.tag} · 8 MEDIAS JUGADAS</small>
+                      <h3>
+                        {opening.name} <span>↗</span>
+                      </h3>
+                      <p>{opening.description}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <section className="journey card">
+                <span className="journey-icon">↗</span>
+                <div>
+                  <h3>El progreso empieza por volver.</h3>
+                  <p>
+                    {progress.dates.length
+                      ? `Has entrenado ${progress.dates.length} días en este navegador. Sigue construyendo tu hábito.`
+                      : 'No necesitas hacerlo todo hoy. Solo dar el siguiente paso.'}
+                  </p>
+                </div>
+                <button className="button" onClick={() => navigate('stats')}>
+                  Ver mi progreso ↗
+                </button>
+              </section>
+            </>
+          )}
+          {page === 'courses' && (
+            <div className="course-grid all-courses">
+              {openings.map((opening, i) => (
+                <article className="card course-card" key={opening.id}>
+                  <div className={`course-art art-${i % 3}`}>
+                    <span>♞</span>
+                    <div className="art-grid" />
+                  </div>
+                  <div className="course-info">
+                    <small>{opening.tag}</small>
+                    <h2>{opening.name}</h2>
+                    <p>{opening.lesson}</p>
+                    <button
+                      className="button"
+                      onClick={() => {
+                        navigate('openings');
+                        setOpeningIndex(i);
+                      }}
+                    >
+                      Aprender jugando ↗
+                    </button>
+                  </div>
+                </article>
+              ))}
             </div>
           )}
+          {(page === 'analysis' || page === 'studies' || page === 'openings' || trainingPage) && (
+            <>
+              {page === 'studies' && (
+                <div className="study-list">
+                  <button
+                    className="button"
+                    onClick={() => {
+                      setStudyId(null);
+                      setGame(new Chess());
+                      setPgn('');
+                      setStudyName('Mi nuevo estudio');
+                    }}
+                  >
+                    + Nuevo estudio
+                  </button>
+                  {studies.map((study) => (
+                    <button
+                      className="study-chip"
+                      key={study.id}
+                      onClick={() => {
+                        if (importPgn(study.pgn)) {
+                          setStudyId(study.id);
+                          setStudyName(study.name);
+                        }
+                      }}
+                    >
+                      {study.name} <span>↗</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {page === 'review' && (
+                <p className="local-note">
+                  Repasa la colección de {puzzles.length} problemas. Has resuelto{' '}
+                  {progress.solved.length}. El repaso espaciado automático todavía no está
+                  disponible.
+                </p>
+              )}
+              {page === 'woodpecker' && (
+                <p className="local-note">
+                  Repite esta colección de {puzzles.length} posiciones hasta reconocer los patrones.
+                  El progreso se guarda en este navegador.
+                </p>
+              )}
+              <div className="workspace-grid">
+                <section className="board-panel card">
+                  <div className="board-meta">
+                    <span className="tiny-dot" />
+                    <strong>
+                      {trainingPage
+                        ? puzzle.title
+                        : page === 'openings'
+                          ? currentOpening.name
+                          : 'Tu tablero'}
+                    </strong>
+                    <span>{shownGame.turn() === 'w' ? 'Blancas' : 'Negras'}</span>
+                  </div>
+                  <Board
+                    fen={shownGame.fen()}
+                    flipped={flipped || (trainingPage && position(puzzle.setup).turn() === 'b')}
+                    onMove={playMove}
+                    interactive={(cursor === null && !solved) || (!trainingPage && cursor === null)}
+                  />
+                  <div className="board-toolbar">
+                    <button onClick={() => setFlipped(!flipped)} aria-label="Girar tablero">
+                      ⇅ Girar
+                    </button>
+                    {!trainingPage && page !== 'openings' && (
+                      <button
+                        onClick={() => {
+                          const next = position(game.history());
+                          next.undo();
+                          setGame(next);
+                          setPgn(next.pgn());
+                          setCursor(null);
+                        }}
+                      >
+                        ↶ Deshacer
+                      </button>
+                    )}
+                    <span>
+                      {shownGame.isCheckmate()
+                        ? 'Jaque mate'
+                        : shownGame.isDraw()
+                          ? 'Tablas'
+                          : shownGame.isCheck()
+                            ? 'Jaque'
+                            : 'Movimientos legales'}
+                    </span>
+                  </div>
+                </section>
+                <aside className="workspace-side card">
+                  {trainingPage ? (
+                    <>
+                      <div className="eyebrow">
+                        {page === 'woodpecker'
+                          ? 'RECONOCE. REPITE. RECUERDA.'
+                          : 'ENTRENA TU MIRADA'}
+                      </div>
+                      <h2>{puzzle.theme}</h2>
+                      <p>
+                        Encuentra la jugada que da jaque mate. Selecciona una pieza y después su
+                        destino.
+                      </p>
+                      <div className="training-counter">
+                        {String(puzzleIndex + 1).padStart(2, '0')}
+                        <span> / {String(puzzles.length).padStart(2, '0')}</span>
+                      </div>
+                      <button className="button" onClick={() => setHint(true)}>
+                        Ver una pista
+                      </button>
+                      {hint && <p className="hint">{puzzle.hint}</p>}
+                      {solved && (
+                        <button className="button cream" onClick={nextPuzzle}>
+                          {puzzleIndex === puzzles.length - 1
+                            ? 'Repetir colección'
+                            : 'Siguiente problema'}{' '}
+                          ↗
+                        </button>
+                      )}
+                      <small className="local-note">
+                        Colección inicial original · Sin rating simulado
+                      </small>
+                    </>
+                  ) : page === 'openings' ? (
+                    <>
+                      <div className="eyebrow">TU REPERTORIO EMPIEZA AQUÍ</div>
+                      <h2>Aprende jugando.</h2>
+                      <label>
+                        Apertura
+                        <select
+                          value={openingIndex}
+                          onChange={(e) => {
+                            setOpeningIndex(Number(e.target.value));
+                            setGame(new Chess());
+                            setStep(0);
+                            setNotice('');
+                          }}
+                        >
+                          {openings.map((o, i) => (
+                            <option key={o.id} value={i}>
+                              {o.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <p>{currentOpening.lesson}</p>
+                      <div className="line-progress">
+                        {currentOpening.moves.map((move, i) => (
+                          <span key={i} className={i < step ? 'done' : i === step ? 'next' : ''}>
+                            {i % 2 === 0 ? `${i / 2 + 1}. ` : ''}
+                            {move}
+                          </span>
+                        ))}
+                      </div>
+                      <p>
+                        {step < currentOpening.moves.length
+                          ? `Juega ${currentOpening.moves[step]} en el tablero.`
+                          : '¡Has completado la línea!'}
+                      </p>
+                      <button
+                        className="button"
+                        onClick={() => {
+                          setGame(new Chess());
+                          setStep(0);
+                          setNotice('');
+                        }}
+                      >
+                        Repetir línea ↻
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="eyebrow">
+                        {page === 'studies' ? 'TU BIBLIOTECA PERSONAL' : 'CADA POSICIÓN, UNA IDEA'}
+                      </div>
+                      <h2>{page === 'studies' ? 'Guarda tu ajedrez.' : 'Explora tu partida.'}</h2>
+                      {page === 'studies' && (
+                        <label>
+                          Nombre del estudio
+                          <input
+                            value={studyName}
+                            onChange={(e) => setStudyName(e.target.value)}
+                            maxLength={100}
+                          />
+                        </label>
+                      )}
+                      <label>
+                        Partida en PGN
+                        <textarea
+                          value={pgn}
+                          onChange={(e) => setPgn(e.target.value)}
+                          placeholder="1. e4 e5 2. Nf3 Nc6 3. Bc4"
+                          rows={5}
+                        />
+                      </label>
+                      <label className="file-label">
+                        O abre un archivo PGN
+                        <input
+                          type="file"
+                          accept=".pgn,text/plain"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            if (file.size > 1000000) {
+                              setNotice('El archivo debe ser menor de 1 MB.');
+                              return;
+                            }
+                            try {
+                              importPgn(await file.text());
+                            } catch {
+                              setNotice('No se ha podido leer el archivo.');
+                            }
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                      <div className="button-row">
+                        <button className="button cream" onClick={() => importPgn()}>
+                          Importar PGN
+                        </button>
+                        <button
+                          className="button"
+                          disabled={!game.history().length}
+                          onClick={() => downloadPgn(game.pgn())}
+                        >
+                          Exportar ↗
+                        </button>
+                      </div>
+                      <div className="move-list">
+                        {game.history().map((move, i) => (
+                          <button
+                            key={i}
+                            className={cursor === i + 1 ? 'current' : ''}
+                            onClick={() => setCursor(i + 1)}
+                          >
+                            {i % 2 === 0 ? `${i / 2 + 1}. ` : ''}
+                            {move}
+                          </button>
+                        ))}
+                      </div>
+                      {game.history().length > 0 && (
+                        <div className="replay">
+                          <button aria-label="Primera posición" onClick={() => setCursor(0)}>
+                            ⇤
+                          </button>
+                          <button
+                            aria-label="Jugada anterior"
+                            onClick={() =>
+                              setCursor(Math.max(0, (cursor ?? game.history().length) - 1))
+                            }
+                          >
+                            ←
+                          </button>
+                          <button
+                            aria-label="Jugada siguiente"
+                            onClick={() =>
+                              setCursor(Math.min(game.history().length, (cursor ?? 0) + 1))
+                            }
+                          >
+                            →
+                          </button>
+                          <button
+                            aria-label="Continuar desde posición final"
+                            onClick={() => setCursor(null)}
+                          >
+                            ⇥
+                          </button>
+                        </div>
+                      )}
+                      {page === 'studies' && (
+                        <button className="button cream" onClick={saveStudy}>
+                          Guardar estudio
+                        </button>
+                      )}
+                      <p className="local-note">
+                        Estudios y progreso guardados en este navegador. Exporta tus PGN para
+                        conservar una copia. El tablero permite explorar jugadas; no incluye
+                        evaluación de motor.
+                      </p>
+                    </>
+                  )}
+                </aside>
+              </div>
+            </>
+          )}
+          {(page === 'play' || page === 'profile') && (
+            <section className="account-layout card">
+              <div className="account-illustration">
+                <span>♞</span>
+                <div className="eyebrow">EL AJEDREZ NOS CONECTA</div>
+              </div>
+              <div className="account-content">
+                <div className="eyebrow">
+                  {page === 'play' ? 'COMPARTE EL TABLERO' : 'TU ESPACIO PERSONAL'}
+                </div>
+                <h2>{user ? `Hola, ${user.name}.` : 'Una cuenta. Muchas buenas partidas.'}</h2>
+                <p>
+                  {page === 'play'
+                    ? 'Partidas amistosas con otra persona en una mesa compartida. Sin reloj ni clasificación. Puedes jugar o mirar.'
+                    : 'Accede con Discord para jugar y consultar las partidas guardadas en tu cuenta.'}
+                </p>
+                {!user ? (
+                  <>
+                    {caps?.discord && API_URL ? (
+                      <a className="button cream" href={`${API_URL}/auth/discord`}>
+                        Entrar con Discord ↗
+                      </a>
+                    ) : (
+                      <p className="local-note">
+                        {API_URL
+                          ? 'Comprobando el acceso con Discord…'
+                          : 'El acceso con Discord necesita un servidor de cuentas configurado.'}
+                      </p>
+                    )}
+                    <p className="local-note">
+                      Solo solicitamos tu identidad. No leemos tus mensajes ni pedimos tu correo.
+                    </p>
+                    {import.meta.env.DEV &&
+                      ['localhost', '127.0.0.1'].includes(location.hostname) &&
+                      caps?.developmentAuth && (
+                        <form
+                          className="development-login"
+                          onSubmit={async (e) => {
+                            e.preventDefault();
+                            setBusy(true);
+                            try {
+                              setUser(await login('/auth/dev', { name: devName }));
+                              setNotice('Identidad local de pruebas iniciada.');
+                            } catch {
+                              setNotice('No se ha podido iniciar la prueba local.');
+                            } finally {
+                              setBusy(false);
+                            }
+                          }}
+                        >
+                          <label>
+                            Nombre para la prueba
+                            <input
+                              value={devName}
+                              onChange={(e) => setDevName(e.target.value)}
+                              required
+                              minLength={1}
+                              maxLength={32}
+                            />
+                          </label>
+                          <button className="button" disabled={busy}>
+                            Entrar en prueba local
+                          </button>
+                          <small>Solo desarrollo · No existe en producción</small>
+                        </form>
+                      )}
+                  </>
+                ) : (
+                  <>
+                    <div className="status-line">
+                      <span className="tiny-dot" />
+                      {user.development ? 'Identidad local de pruebas' : 'Conectado con Discord'}
+                    </div>
+                    {page === 'play' && (
+                      <button
+                        className="button cream"
+                        disabled={busy || !WORLD_URL}
+                        onClick={() => void startOnline()}
+                      >
+                        {busy ? 'Conectando…' : 'Abrir mesa compartida'} ↗
+                      </button>
+                    )}
+                    <button className="button" onClick={() => void signOut()}>
+                      Cerrar sesión
+                    </button>
+                  </>
+                )}
+              </div>
+            </section>
+          )}
+          {(page === 'profile' || page === 'stats') && (
+            <>
+              <div className="section-heading">
+                <h2>
+                  Tu camino, en números<span>.</span>
+                </h2>
+                <span>Datos reales de tu actividad</span>
+              </div>
+              <div className="stats-grid">
+                {[
+                  [progress.solved.length, 'Problemas resueltos'],
+                  [progress.completed.length, 'Aperturas completadas'],
+                  [studies.length, 'Estudios guardados'],
+                  [progress.dates.length, 'Días de práctica'],
+                ].map(([value, label]) => (
+                  <div className="stat card" key={label}>
+                    <strong>{value}</strong>
+                    <span>{label}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="local-note">
+                Práctica y estudios: este navegador. Partidas: tu cuenta de Discord. Sin
+                estimaciones de Elo.
+              </p>
+              <section className="card history-panel">
+                <h2>Mis partidas</h2>
+                {!user ? (
+                  <p>Inicia sesión desde Mi perfil para consultar tu historial.</p>
+                ) : games.length === 0 ? (
+                  <p>
+                    Todavía no hay partidas guardadas en tu cuenta. Tu siguiente partida puede ser
+                    la primera.
+                  </p>
+                ) : (
+                  games.map((g) => (
+                    <div className="history-row" key={g.id}>
+                      <span>
+                        Resultado: {g.result} · {g.reason}
+                      </span>
+                      <button
+                        className="button"
+                        onClick={() => {
+                          navigate('analysis');
+                          importPgn(g.pgn);
+                        }}
+                      >
+                        Revisar ↗
+                      </button>
+                      <button className="text-button" onClick={() => downloadPgn(g.pgn)}>
+                        PGN ↓
+                      </button>
+                    </div>
+                  ))
+                )}
+              </section>
+            </>
+          )}
           <footer>
-            <span>{t.noFake}</span>
-            <span>{t.footer}</span>
+            <span className="footer-brand">♜ ChessDev.</span>
+            <span>El ajedrez, a tu manera.</span>
+            <a href="https://lichess.org/" target="_blank" rel="noreferrer">
+              Más ajedrez en Lichess ↗
+            </a>
           </footer>
         </div>
       </main>
-      {connection?.activity === 'chess' && connection.board && (
+      {connection?.activity && connection.board && (
         <ChessBoard
           state={connection.board}
           connection={connection}
-          t={t}
+          t={es}
           onClose={() => connection.closeActivity()}
         />
       )}

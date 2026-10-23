@@ -6,6 +6,8 @@ Arquitectura aceptada por el usuario: GitHub Pages para la web, Cloudflare Worke
 
 ## Configuración preparada
 
+Acceso público actual del API: `https://pixelspace-world.onrender.com/api`; `VITE_WORLD_URL=https://pixelspace-world.onrender.com`. `API_PROXY_ENABLED=true` habilita solo las rutas públicas enumeradas en `apiProxy.ts`; `API_URL` del servidor continúa apuntando al Worker. Callback de Discord: `https://pixelspace-world.onrender.com/api/auth/discord/callback`. El proxy no publica `/internal`, limita cuerpos a 64 KiB, conserva redirecciones sin seguirlas y ajusta el cookie OAuth a `/api/auth`. Las cuotas por IP del Worker agrupan a los clientes del proxy por la salida de Render; el límite actual de 30 peticiones/minuto por ruta es compartido por esa salida y debe revisarse antes de ampliar la beta. No se confía en cabeceras IP suministradas por el navegador.
+
 `render.yaml` define solo un Web Service Docker, `plan: free`, región Frankfurt, salud `/health`, variables públicas y tres valores solicitados de forma privada. No crea bases, discos ni servicios de pago. Los despliegues automáticos están desactivados para evitar reiniciar partidas con cada push.
 
 Si el usuario acepta Render, iniciar sesión o crear su cuenta revisando sus términos. Sin método de pago, seleccionar workspace gratuito y servicio **Free**. Si el proveedor exige tarjeta, detener el alta: no introducirla ni actualizar de plan. Revisar el resumen antes de crear recursos. Se puede conectar solo el repositorio PixelSpace o usar su URL pública en alta manual (esta última evita otorgar acceso a GitHub).

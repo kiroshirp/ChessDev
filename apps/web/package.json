@@ -12,12 +12,9 @@
     "@colyseus/sdk": "^0.18.5",
     "@pixelspace/auth": "0.1.0",
     "@pixelspace/chess-core": "0.1.0",
-    "@pixelspace/map-engine": "*",
     "@pixelspace/realtime": "0.1.0",
     "@pixelspace/shared": "*",
-    "@pixelspace/world-engine": "*",
     "chess.js": "^1.4.0",
-    "phaser": "3.90.0",
     "react": "19.3.1",
     "react-dom": "19.3.1"
   },

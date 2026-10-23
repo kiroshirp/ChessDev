@@ -2,6 +2,7 @@ import type { RequestHandler } from 'express';
 import { Server } from '@colyseus/core';
 import { WebSocketTransport } from '@colyseus/ws-transport';
 import { AcademyRoom } from './AcademyRoom.js';
+import { createApiProxy } from './apiProxy.js';
 const production = process.env.NODE_ENV === 'production';
 const origins = new Set(
   (
@@ -53,6 +54,8 @@ const server = new Server({
       next();
     };
     app.use(guard);
+    if (process.env.API_PROXY_ENABLED === 'true')
+      app.use('/api', createApiProxy(AcademyRoom.config.apiUrl));
     app.get('/health', (_req, res) =>
       res.json({ service: 'pixelspace-world', status: 'ok', multiplayer: true }),
     );

@@ -9,7 +9,11 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
   if (!API_URL) throw new Error('BACKEND_NOT_CONFIGURED');
   const headers: Record<string, string> = {};
   if (token) headers.Authorization = `Bearer ${token}`;
-  const init: RequestInit = { credentials: 'include', headers, signal: AbortSignal.timeout(10000) };
+  const init: RequestInit = {
+    credentials: 'include',
+    headers,
+    signal: AbortSignal.timeout(path === '/capabilities' ? 90000 : 10000),
+  };
   if (body !== undefined) {
     init.method = 'POST';
     headers['Content-Type'] = 'application/json';

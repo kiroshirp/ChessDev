@@ -1,4 +1,4 @@
-name: Publish technical frontend
+name: Publish ChessDev
 on:
   push:
     branches: [main]
@@ -26,6 +26,7 @@ jobs:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
           VITE_WORLD_URL: ${{ vars.VITE_WORLD_URL }}
       - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
       - run: npm run test:public
         if: ${{ vars.VITE_API_URL != '' && vars.VITE_WORLD_URL != '' }}
         env:

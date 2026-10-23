@@ -1,3 +1,13 @@
+# ChessDev — verificación del 23 de octubre de 2026
+
+Sustitución de la web de mundo virtual por ChessDev. TypeScript, lint y frontera de dependencias aprobados; 29 pruebas unitarias aprobadas. Cinco E2E aprobados: protocolo autoritativo/reconexión, partida con dos contextos hasta mate y persistencia, estudios PGN y almacenamiento, tres problemas y una línea completa, adaptación móvil sin desbordamiento. Build de web/API/servidor aprobado. Capturas locales de escritorio y móvil revisadas. Comprobación de producción bajo `/PixelSpace/` aprobada con los servicios públicos configurados y sin acceso de desarrollo.
+
+Colección inicial: cuatro líneas de aperturas y tres problemas. Sin evaluación de motor, rating ni sincronización de estudios entre equipos. OAuth Discord real con dos cuentas remotas sigue pendiente.
+
+Publicación en curso: Render responde 404 en `/api/health` antes de desplegar el proxy preparado. El cambio se sube a una rama sin publicación automática de Pages para poder desplegar y verificar primero el servidor. No se activa facturación ni se crea infraestructura nueva.
+
+---
+
 # Informe de verificación — primera versión técnica
 
 ## Estado más reciente del despliegue
@@ -7,6 +17,8 @@
 Render `pixelspace-world`, servicio `srv-dbagmmu7bikc73eilhn0`, plan Free 0 USD, Frankfurt, Docker, health `/health`, despliegues automáticos desactivados. Primer despliegue `dep-dbagmnm7bikc73eiljs0` desde `a551281` finalizado Live. `/health` público 200 en `https://pixelspace-world.onrender.com`. Ticket firmado de diagnóstico con sesión inexistente rechazado como `SESSION_EXPIRED`: comprueba comunicación Render → Worker → D1, sin crear usuarios de prueba ni abrir acceso de desarrollo.
 
 Discord callback guardado y confirmado por el portal: `https://pixelspace-api.kiroshirp.workers.dev/auth/discord/callback`. Aún pendiente prueba de autorización Discord real y partida remota con dos cuentas. Desde la red local el dominio workers.dev agota el tiempo de conexión; Render sí consigue acceder. Se añaden comprobaciones públicas en GitHub Actions antes de publicar el frontend conectado. Las verificaciones históricas de abajo distinguen pruebas locales de despliegues pendientes en aquel momento.
+
+Publicación conectada `ede716c`: [Pages](https://github.com/kiroshirp/PixelSpace/actions/runs/39153416053) aprobado, incluidos health 200 de API/Render, Discord habilitado, /auth/me 401, /auth/dev 404, /world/ticket 401 y navegador de producción. CI detectó un timeout en una captura rutinaria después de mate y resultado guardado; las capturas rutinarias se limitan ahora a verificación local, conservando en CI todas las aserciones de juego, historial/logout, trazas y contexto de fallos. Se añade espera del health de Render antes de emitir el ticket de 60 segundos para tolerar arranque en frío; el mensaje ES/EN explica la espera. No se afirma que este cambio se haya probado esperando un reposo real de 15 minutos.
 
 Fecha: 18 de octubre de 2026. Windows, Node 24.14.0, npm 11.9.0 y Git. Documento maestro conservado y registrado como instrucción permanente en `AGENTS.md`.
 

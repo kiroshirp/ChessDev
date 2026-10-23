@@ -50,6 +50,18 @@ export class AcademyRoom extends Room<{ state: WorldState }> {
     return identity;
   }
   onCreate() {
+    // The chess workspace enters the shared table without a world navigation UI.
+    this.onMessage('chess:join', (client) => {
+      const player = this.state.players.get(client.sessionId);
+      const object = academyObjects[0]!;
+      if (!player) return;
+      player.x = object.x;
+      player.y = object.y;
+      this.directions.delete(client.sessionId);
+      this.watchers.add(client.sessionId);
+      client.send('activity:open', { activityId: object.activityId, objectId: object.id });
+      client.send('chess:state', this.table.snapshot());
+    });
     this.onMessage('world:move', (client, data: unknown) => {
       const input = moveIntentSchema.safeParse(data);
       const player = this.state.players.get(client.sessionId);

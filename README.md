@@ -1,58 +1,35 @@
-# PixelSpace
+# ChessDev
 
-Primera publicación sin cargos: frontend en Pages, API/cuentas en Cloudflare Workers Free + D1 y Colyseus ya desplegado en Render Free. Firebase está aplazado porque requiere Blaze. Configuración y límites: `docs/free-hosting.md`; resultados comprobados y pendientes: `docs/verification.md`.
+Plataforma de ajedrez en español con la identidad visual de ChessDev: antracita, marfil, tipografía marcada y tarjetas con sombras. Sustituye la experiencia pública de PixelSpace. El repositorio conserva su nombre y su historial para mantener las URLs e infraestructura existentes.
 
-Academia virtual pixel art con **movimiento y ajedrez multijugador reales**. React, TypeScript, Vite, Phaser, Node y Colyseus. Documento funcional permanente: [especificación maestra](docs-specification.es.md); decisiones posteriores: [decisions](docs/decisions.md). `AGENTS.md` indica a futuros colaboradores cómo aplicarlos.
+## Funciones disponibles
 
-## Primera versión técnica
+- Panel con accesos a entrenamiento, estudios, partidas y cursos.
+- Cuatro líneas introductorias de aperturas, legales y verificadas jugada a jugada.
+- Colección original de tres problemas de mate, pistas, repaso y repetición Woodpecker.
+- Tablero legal con selección de promoción, giro, importación/exportación PGN y reproducción de partidas. No incluye evaluación de motor.
+- Estudios y progreso guardados en el navegador. Exportación PGN para copias de seguridad; no se sincronizan entre equipos.
+- Partidas amistosas en mesa compartida: blancas, negras, espectadores, reglas autoritativas, tablas, rendición e historial persistido en D1. Sin reloj ni Elo.
+- Discord obligatorio para juego público; las herramientas locales se pueden explorar sin cuenta. Identidades de pruebas solo en loopback y desarrollo.
 
-- Vestíbulo, aula, cafetería y sala de juego, con mapa y gráficos originales.
-- Avatares con nombres, animación, WASD/flechas, colisiones en servidor, cámara y zoom.
-- Presencia compartida por Colyseus, interpolación y reconexión con reserva de asiento durante 20 segundos.
-- Mesa 01 interactiva: dos asientos, espectadores, jugadas legales en servidor mediante chess.js, promoción seleccionable, rendición, tablas, PGN y resultados persistidos.
-- Partidas **amistosas, sin reloj ni rating**. No motor de análisis, torneos, pagos, chat, audio o editor.
-- Público: acceso obligatorio con Discord. La primera autorización crea la cuenta; no hay contraseña PixelSpace. Perfil privado, sesiones revocables y solo scope `identify`.
-- Destino: GitHub Pages para frontend; Cloudflare Worker + D1 para cuentas/resultados; Cloud Run del proyecto Firebase `pixelspace-93730` para Node/Colyseus. Cloud Run pendiente de facturación Blaze y despliegue; ver `docs/firebase-colyseus.md`. Discord se configura siguiendo `docs/discord-setup.md`.
+No se simulan usuarios conectados, clasificaciones, notificaciones ni estadísticas. No hay tienda, pagos, análisis automático ni entrenadores IA.
 
-El aula y la cafetería son zonas navegables; no se simulan clases o comunicación. La segunda mesa es decorativa y no muestra una interacción disponible.
+## Desarrollo
 
-## Ejecutar localmente
+Node 24.x y npm 11.x. Ejecuta `npm ci`, copia `.env.example` a `.env` si no existe y arranca `npm run dev`. Web: http://127.0.0.1:5173; API: 3001; servidor de partidas: 2567.
 
-Requisitos: Node **24.x**, npm **11.x**. No requiere Docker ni cuentas cloud para la prueba local.
+Para jugar con dos clientes locales, abre dos contextos independientes, entra en Jugar con nombres de pruebas distintos, abre la mesa y elige un color en cada cliente.
 
-```powershell
-npm ci
-Copy-Item .env.example .env
-npm run dev
-```
+## Validación
 
-macOS/Linux: `cp .env.example .env`. Si ya tienes `.env`, consérvalo y añade solo las variables que necesites. Abre [localhost:5173](http://127.0.0.1:5173/). API en 3001, Colyseus en 2567. Ctrl+C detiene los procesos.
+`npm run check`: TypeScript, lint, pruebas unitarias y builds.
+`npm run test:e2e`: dos clientes, partida hasta mate, historial, PGN, persistencia local, entrenamiento y móvil.
+`npm run test:pages`: comprobación de producción bajo `/PixelSpace/` después de compilar con `VITE_BASE_PATH=/PixelSpace/`.
 
-Para comprobar dos personas: abre dos perfiles de navegador o ventanas privadas independientes. Usa **Acceso local de desarrollo** con nombres distintos. Son identidades de pruebas explícitas, guardadas en `.local/pixelspace.sqlite`; este acceso no existe en producción. Después usa **Sala de juego → Abrir mesa**, elige blancas en un navegador y negras en el otro. También puedes caminar hasta la mesa y pulsar E.
+## Infraestructura gratuita
 
-La API local aplica las mismas migraciones SQLite utilizadas por D1. Producción usa bindings D1, sin SQLite en un disco del contenedor. `npm run db:migrate` aplica las migraciones locales; `npm run db:generate` genera cambios desde el esquema Drizzle.
+GitHub Pages para frontend, Render Free para Colyseus y Cloudflare Worker/D1 Free para cuentas, OAuth e historial. API pública: `https://pixelspace-world.onrender.com/api`. No activar facturación. [Configuración](docs/free-hosting.md), [decisiones](docs/decisions.md), [verificaciones](docs/verification.md).
 
-## Verificar
+El servidor conserva los módulos de mapas y movimiento como infraestructura interna ya probada. La web nueva no carga Phaser ni muestra el mundo virtual. No se han borrado usuarios ni resultados existentes. Secretos solo en el servidor; nunca en Git o variables `VITE_*`.
 
-```sh
-npm run check
-npx playwright install chromium
-npm run test:e2e
-npm run worker:check
-npx wrangler d1 migrations apply DB --local --config apps/api/wrangler.jsonc
-npm run format:check
-```
-
-E2E arranca API, Colyseus y frontend en 5174. Comprueba dos contextos de navegador, una partida con mate y guardado, móvil, colisiones y ataques al protocolo/reconexión. [Resultados realmente ejecutados](docs/verification.md).
-
-## Discord y Cloudflare
-
-El flujo OAuth está implementado y probado con un proveedor simulado; **necesita tu aplicación Discord y secretos antes de activar el acceso real**. No pongas secretos en variables `VITE_*`, GitHub Pages ni el repositorio. [Guía de configuración y despliegue](docs/deployment.md).
-
-GitHub Pages publica solo archivos estáticos. Configura `VITE_API_URL` y `VITE_WORLD_URL` como **variables del repositorio**, apuntando a los dos Workers HTTPS. Sin backend configurado, la página pública muestra el estado de preparación y no permite entrar al mundo ni usar identidades de desarrollo.
-
-## Módulos
-
-`shared` contratos; `map-engine` mapas genéricos; `world-engine` simulación; `realtime` estado sincronizado; `auth` identidad y tickets; `database` D1/SQLite; `chess-core` reglas y estados de la mesa. La representación está en `apps/web`, OAuth en `apps/api` y networking en `apps/world-server`. `apps/gateway` conserva la alternativa anterior de Containers, sin desplegar. El núcleo de mapas/movimiento no depende de chess.js.
-
-Licencia original MIT conservada. [Procedencia de gráficos y bibliotecas](docs/asset-licenses.md). El proyecto aún no es una beta de producción: consulta los límites de seguridad, persistencia y despliegue antes de admitir usuarios reales.
+[Especificación vigente](docs-specification.es.md). Licencias originales conservadas; no se reutilizan marcas ni recursos de ChessFlare.
