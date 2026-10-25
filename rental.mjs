@@ -79,7 +79,7 @@ export function prepareRequest({ quantities, pickup, returns, customer = '', clu
     '', 'Material solicitado:', ...quote.selected.map(product => `- ${product.quantity} × ${product.name} (${euros(product.price)}/ud. para hasta 48 h)`),
     '', `Gestión urgente: ${euros(MANAGEMENT_FEE)}`,
     `Material: ${euros(quote.material)}`, `Total estimado: ${euros(quote.total)}`,
-    'Importe, impuestos, disponibilidad y horario pendientes de confirmación.',
+    'IVA incluido. Disponibilidad y horario pendientes de confirmación. Pago solo por transferencia tras confirmar y antes de entregar el material. Cancelación sin cargos antes de la entrega.',
     'Reposición: pérdida, no devolución o daño irreparable imputable al cliente implica abonar el coste íntegro de un producto nuevo equivalente, con valor documentado y acordado antes de contratar. Daños reparables: coste de reparación. Se excluye el desgaste normal.',
     ...(notes.trim() ? ['', `Observaciones: ${notes.trim()}`] : []),
     '', `Recogida en ${CONTACT.name}: ${CONTACT.address}.`, `Metros cercanos: ${CONTACT.metro}.`,

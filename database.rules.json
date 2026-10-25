@@ -1,32 +1,396 @@
 {
   "rules": {
-    ".read": false,
-    ".write": false,
+    ".read": "auth != null && auth.uid === 'chessdev-admin'",
+    ".write": "auth != null && auth.uid === 'chessdev-admin' && newData.hasChildren(['catalog'])",
     "catalog": {
       ".read": true,
       ".write": "auth != null && auth.uid === 'chessdev-admin' && newData.exists()",
-      ".validate": "newData.hasChildren(['revision', 'products']) && newData.child('revision').isNumber() && newData.child('revision').val() % 1 === 0 && ((!data.exists() && newData.child('revision').val() === 1) || newData.child('revision').val() === data.child('revision').val() + 1)",
-      "revision": { ".validate": "newData.isNumber() && newData.val() > 0" },
+      ".validate": "newData.hasChildren(['revision', 'products']) && newData.child('revision').isNumber() && newData.child('revision').val() % 1 === 0 && ((!data.exists() && newData.child('revision').val() === 1) || newData.child('revision').val() === data.child('revision').val() + 1) && (newData.parent().child('managementRevision').val() === (data.parent().child('managementRevision').exists() ? data.parent().child('managementRevision').val() + 1 : 1))",
+      "revision": {
+        ".validate": "newData.isNumber() && newData.val() > 0"
+      },
       "products": {
         ".validate": "newData.hasChildren()",
         "$id": {
           ".validate": "$id.matches(/^(boards|pieces|dgt|leap|folding|mural|giant|item-(0[0-9]|[1-8][0-9]|9[0-2]))$/) && newData.hasChildren(['id','name','plural','price','max','kind','description','review','visible','position','replacementValue']) && newData.child('id').val() === $id",
-          "id": { ".validate": "newData.isString() && newData.val() === $id" },
-          "name": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100 && newData.val().matches(/.*[^\\s].*/)" },
-          "plural": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100 && newData.val().matches(/.*[^\\s].*/)" },
-          "description": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 400 && newData.val().matches(/.*[^\\s].*/)" },
-          "price": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && ((newData.val() * 100) % 1 < 0.000001 || (newData.val() * 100) % 1 > 0.999999)" },
-          "replacementValue": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && ((newData.val() * 100) % 1 < 0.000001 || (newData.val() * 100) % 1 > 0.999999)" },
-          "max": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && newData.val() % 1 === 0" },
-          "position": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && newData.val() % 1 === 0" },
-          "kind": { ".validate": "newData.isString() && (newData.val() === 'board' || newData.val() === 'pieces' || newData.val() === 'clock' || newData.val() === 'folding' || newData.val() === 'mural' || newData.val() === 'giant')" },
-          "review": { ".validate": "newData.isBoolean()" },
-          "visible": { ".validate": "newData.isBoolean()" },
-          "$other": { ".validate": false }
+          "id": {
+            ".validate": "newData.isString() && newData.val() === $id"
+          },
+          "name": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100 && newData.val().matches(/.*[^\\s].*/)"
+          },
+          "plural": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100 && newData.val().matches(/.*[^\\s].*/)"
+          },
+          "description": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 400 && newData.val().matches(/.*[^\\s].*/)"
+          },
+          "price": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && ((newData.val() * 100) % 1 < 0.000001 || (newData.val() * 100) % 1 > 0.999999)"
+          },
+          "replacementValue": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && ((newData.val() * 100) % 1 < 0.000001 || (newData.val() * 100) % 1 > 0.999999)"
+          },
+          "max": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && newData.val() % 1 === 0"
+          },
+          "position": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && newData.val() % 1 === 0"
+          },
+          "kind": {
+            ".validate": "newData.isString() && (newData.val() === 'board' || newData.val() === 'pieces' || newData.val() === 'clock' || newData.val() === 'folding' || newData.val() === 'mural' || newData.val() === 'giant')"
+          },
+          "review": {
+            ".validate": "newData.isBoolean()"
+          },
+          "visible": {
+            ".validate": "newData.isBoolean()"
+          },
+          "$other": {
+            ".validate": false
+          }
         }
       },
-      "$other": { ".validate": false }
+      "$other": {
+        ".validate": false
+      }
     },
-    "$other": { ".read": false, ".write": false }
+    "$other": {
+      ".validate": false
+    },
+    ".validate": "newData.hasChildren(['catalog'])",
+    "managementRevision": {
+      ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() === (data.exists() ? data.val() + 1 : 1)"
+    },
+    "requests": {
+      "$uid": {
+        ".validate": "newData.hasChildren([\"id\",\"reference\",\"createdAt\",\"pickupAt\",\"returnAt\",\"customer\",\"organization\",\"contact\",\"notes\",\"items\",\"managementFee\",\"termsVersion\",\"status\"]) && (newData.child('id').val() === $uid && newData.child('returnAt').val() > newData.child('pickupAt').val() && newData.child('returnAt').val() - newData.child('pickupAt').val() <= 172800000 && (data.exists() || (newData.child('createdAt').val() >= now - 60000 && newData.child('createdAt').val() <= now + 60000 && newData.child('pickupAt').val() >= now + 36000000 && newData.child('termsVersion').val() === '2026-10-25-reservas-iva-v1')))",
+        "id": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 128"
+        },
+        "reference": {
+          ".validate": "newData.isString() && newData.val().matches(/^CD-[A-F0-9]{12}$/)"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9007199254740991"
+        },
+        "pickupAt": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9007199254740991"
+        },
+        "returnAt": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9007199254740991"
+        },
+        "customer": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 100"
+        },
+        "organization": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 160"
+        },
+        "contact": {
+          ".validate": "newData.isString() && newData.val().matches(/^[+0-9 ()-]{7,30}$/)"
+        },
+        "notes": {
+          ".validate": "newData.isString() && newData.val().length >= 0 && newData.val().length <= 1000"
+        },
+        "items": {
+          ".validate": "newData.hasChildren()",
+          "$pid": {
+            ".validate": "newData.hasChildren([\"name\",\"quantity\",\"unitPrice\",\"replacementValue\"]) && ($pid.matches(/^(boards|pieces|dgt|leap|folding|mural|giant|item-(0[0-9]|[1-8][0-9]|9[0-2]))$/) && (data.exists() || (root.child('catalog/products').child($pid).child('visible').val() === true && newData.child('quantity').val() <= root.child('catalog/products').child($pid).child('max').val() && newData.child('unitPrice').val() === root.child('catalog/products').child($pid).child('price').val() && newData.child('replacementValue').val() === root.child('catalog/products').child($pid).child('replacementValue').val() && newData.child('name').val() === root.child('catalog/products').child($pid).child('name').val())))",
+            "name": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 100"
+            },
+            "quantity": {
+              ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 10000 && newData.val() % 1 === 0"
+            },
+            "unitPrice": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && ((newData.val() * 100) % 1 < 0.000001 || (newData.val() * 100) % 1 > 0.999999)"
+            },
+            "replacementValue": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && ((newData.val() * 100) % 1 < 0.000001 || (newData.val() * 100) % 1 > 0.999999)"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "managementFee": {
+          ".validate": "newData.val() === 50"
+        },
+        "termsVersion": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 80"
+        },
+        "status": {
+          ".validate": "newData.val() === 'pending'"
+        },
+        "$other": {
+          ".validate": false
+        },
+        ".read": "auth != null && auth.uid === 'chessdev-admin' || (auth != null && auth.uid === $uid)",
+        ".write": "auth != null && auth.uid === 'chessdev-admin' || (auth != null && auth.uid === $uid && !data.exists() && newData.exists())"
+      }
+    },
+    "bookings": {
+      "$uid": {
+        ".validate": "newData.hasChildren([\"id\",\"reference\",\"createdAt\",\"pickupAt\",\"returnAt\",\"customer\",\"organization\",\"contact\",\"notes\",\"items\",\"managementFee\",\"termsVersion\",\"status\",\"customerDocument\",\"changedAt\",\"clientAccepted\",\"terms\",\"provider\",\"payment\",\"handover\",\"returnRecord\",\"incident\"]) && (newData.child('id').val() === $uid && newData.child('returnAt').val() > newData.child('pickupAt').val() && newData.child('returnAt').val() - newData.child('pickupAt').val() <= 172800000 && (newData.child('handover/at').val() === 0 || (newData.child('handover/at').val() >= newData.child('createdAt').val() + 36000000 && newData.child('handover/at').val() <= now + 60000 && newData.child('returnAt').val() > newData.child('handover/at').val() && newData.child('returnAt').val() - newData.child('handover/at').val() <= 172800000 && newData.child('handover/paperSigned').val() === true && newData.child('handover/contractSigned').val() === true)) && newData.parent().parent().child('managementRevision').val() === (data.parent().parent().child('managementRevision').exists() ? data.parent().parent().child('managementRevision').val() + 1 : 1))",
+        "id": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 128"
+        },
+        "reference": {
+          ".validate": "newData.isString() && newData.val().matches(/^CD-[A-F0-9]{12}$/)"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9007199254740991"
+        },
+        "pickupAt": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9007199254740991"
+        },
+        "returnAt": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9007199254740991"
+        },
+        "customer": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 100"
+        },
+        "organization": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 160"
+        },
+        "contact": {
+          ".validate": "newData.isString() && newData.val().matches(/^[+0-9 ()-]{7,30}$/)"
+        },
+        "notes": {
+          ".validate": "newData.isString() && newData.val().length >= 0 && newData.val().length <= 1000"
+        },
+        "items": {
+          ".validate": "newData.hasChildren()",
+          "$pid": {
+            ".validate": "newData.hasChildren([\"name\",\"quantity\",\"unitPrice\",\"replacementValue\"]) && ($pid.matches(/^(boards|pieces|dgt|leap|folding|mural|giant|item-(0[0-9]|[1-8][0-9]|9[0-2]))$/))",
+            "name": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 100"
+            },
+            "quantity": {
+              ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 10000 && newData.val() % 1 === 0"
+            },
+            "unitPrice": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && ((newData.val() * 100) % 1 < 0.000001 || (newData.val() * 100) % 1 > 0.999999)"
+            },
+            "replacementValue": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && ((newData.val() * 100) % 1 < 0.000001 || (newData.val() * 100) % 1 > 0.999999)"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "managementFee": {
+          ".validate": "newData.val() === 50"
+        },
+        "termsVersion": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 80"
+        },
+        "status": {
+          ".validate": "newData.val() === 'draft' || newData.val() === 'confirmed' || newData.val() === 'collected' || newData.val() === 'returned' || newData.val() === 'cancelled' || newData.val() === 'incident' || newData.val() === 'resolved'"
+        },
+        "customerDocument": {
+          ".validate": "newData.isString() && newData.val().length >= 0 && newData.val().length <= 40"
+        },
+        "changedAt": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9007199254740991"
+        },
+        "clientAccepted": {
+          ".validate": "newData.isBoolean()"
+        },
+        "terms": {
+          ".validate": "newData.hasChildren([\"tax\",\"payment\",\"cancellation\",\"delay\"]) && (true)",
+          "tax": {
+            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 100"
+          },
+          "payment": {
+            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 1000"
+          },
+          "cancellation": {
+            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 1000"
+          },
+          "delay": {
+            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 1500"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "provider": {
+          ".validate": "newData.hasChildren([\"legalName\",\"taxId\",\"paymentInstructions\"]) && (true)",
+          "legalName": {
+            ".validate": "newData.isString() && newData.val().length >= 0 && newData.val().length <= 160"
+          },
+          "taxId": {
+            ".validate": "newData.isString() && newData.val().length >= 0 && newData.val().length <= 40"
+          },
+          "paymentInstructions": {
+            ".validate": "newData.isString() && newData.val().length >= 0 && newData.val().length <= 1000"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "payment": {
+          ".validate": "newData.hasChildren([\"status\",\"reference\",\"at\"]) && (true)",
+          "status": {
+            ".validate": "newData.val() === 'pending' || newData.val() === 'received' || newData.val() === 'refunded'"
+          },
+          "reference": {
+            ".validate": "newData.isString() && newData.val().length >= 0 && newData.val().length <= 100"
+          },
+          "at": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9007199254740991"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "handover": {
+          ".validate": "newData.hasChildren([\"at\",\"note\",\"paperSigned\",\"contractSigned\"]) && (true)",
+          "at": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9007199254740991"
+          },
+          "note": {
+            ".validate": "newData.isString() && newData.val().length >= 0 && newData.val().length <= 1000"
+          },
+          "paperSigned": {
+            ".validate": "newData.isBoolean()"
+          },
+          "contractSigned": {
+            ".validate": "newData.isBoolean()"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "returnRecord": {
+          ".validate": "newData.hasChildren([\"at\",\"note\",\"paperSigned\"]) && (true)",
+          "at": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9007199254740991"
+          },
+          "note": {
+            ".validate": "newData.isString() && newData.val().length >= 0 && newData.val().length <= 1000"
+          },
+          "paperSigned": {
+            ".validate": "newData.isBoolean()"
+          },
+          "items": {
+            "$pid": {
+              ".validate": "newData.hasChildren([\"returned\",\"damaged\",\"note\"]) && ($pid.matches(/^(boards|pieces|dgt|leap|folding|mural|giant|item-(0[0-9]|[1-8][0-9]|9[0-2]))$/) && newData.child('damaged').val() <= newData.child('returned').val())",
+              "returned": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && newData.val() % 1 === 0"
+              },
+              "damaged": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && newData.val() % 1 === 0"
+              },
+              "note": {
+                ".validate": "newData.isString() && newData.val().length >= 0 && newData.val().length <= 300"
+              },
+              "$other": {
+                ".validate": false
+              }
+            }
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "incident": {
+          ".validate": "newData.hasChildren([\"open\",\"note\",\"resolvedAt\"]) && (true)",
+          "open": {
+            ".validate": "newData.isBoolean()"
+          },
+          "note": {
+            ".validate": "newData.isString() && newData.val().length >= 0 && newData.val().length <= 1000"
+          },
+          "resolvedAt": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9007199254740991"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "returnHistory": {
+          "$record": {
+            ".validate": "newData.hasChildren([\"at\",\"note\",\"paperSigned\"]) && (true) && $record.matches(/^r[0-9]{13}$/)",
+            "at": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9007199254740991"
+            },
+            "note": {
+              ".validate": "newData.isString() && newData.val().length >= 0 && newData.val().length <= 1000"
+            },
+            "paperSigned": {
+              ".validate": "newData.isBoolean()"
+            },
+            "items": {
+              "$pid": {
+                ".validate": "newData.hasChildren([\"returned\",\"damaged\",\"note\"]) && ($pid.matches(/^(boards|pieces|dgt|leap|folding|mural|giant|item-(0[0-9]|[1-8][0-9]|9[0-2]))$/) && newData.child('damaged').val() <= newData.child('returned').val())",
+                "returned": {
+                  ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && newData.val() % 1 === 0"
+                },
+                "damaged": {
+                  ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && newData.val() % 1 === 0"
+                },
+                "note": {
+                  ".validate": "newData.isString() && newData.val().length >= 0 && newData.val().length <= 300"
+                },
+                "$other": {
+                  ".validate": false
+                }
+              }
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "availability": {
+      ".read": true,
+      "$uid": {
+        ".validate": "newData.hasChildren([\"pickupAt\",\"returnAt\",\"state\",\"indefinite\",\"items\"]) && (newData.parent().parent().child('bookings').child($uid).exists() && newData.child('state').val() === newData.parent().parent().child('bookings').child($uid).child('status').val() && newData.child('pickupAt').val() === newData.parent().parent().child('bookings').child($uid).child('pickupAt').val() && newData.child('returnAt').val() === newData.parent().parent().child('bookings').child($uid).child('returnAt').val())",
+        "pickupAt": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9007199254740991"
+        },
+        "returnAt": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9007199254740991"
+        },
+        "state": {
+          ".validate": "newData.val() === 'confirmed' || newData.val() === 'collected' || newData.val() === 'incident'"
+        },
+        "indefinite": {
+          ".validate": "newData.isBoolean()"
+        },
+        "items": {
+          ".validate": "newData.hasChildren()",
+          "$pid": {
+            ".validate": "$pid.matches(/^(boards|pieces|dgt|leap|folding|mural|giant|item-(0[0-9]|[1-8][0-9]|9[0-2]))$/) && newData.isNumber() && newData.val() > 0 && newData.val() % 1 === 0 && newData.val() <= 10000"
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "settings": {
+      ".validate": "newData.hasChildren([\"legalName\",\"taxId\",\"paymentInstructions\"]) && (true)",
+      "legalName": {
+        ".validate": "newData.isString() && newData.val().length >= 0 && newData.val().length <= 160"
+      },
+      "taxId": {
+        ".validate": "newData.isString() && newData.val().length >= 0 && newData.val().length <= 40"
+      },
+      "paymentInstructions": {
+        ".validate": "newData.isString() && newData.val().length >= 0 && newData.val().length <= 1000"
+      },
+      "$other": {
+        ".validate": false
+      }
+    }
   }
 }

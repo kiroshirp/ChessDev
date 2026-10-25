@@ -15,3 +15,5 @@ nav a:hover,.text-link:hover{color:#fff}.nav-cta{background:#25252c;border:2px s
 .contact-location{font-size:12px;line-height:1.9;color:#c3c3cd;margin:23px 0 0}.contact-location strong{color:#f3f3ed}
 .admin-footer-link{font-size:10px;color:var(--muted);text-decoration:underline}.product-card h3,.product-bottom p,.admin-item h2,.admin-item p{overflow-wrap:anywhere}
 @media(prefers-reduced-motion:reduce){.button{transition:none}}
+.hero-fee{display:inline-block;background:#eeeee7;color:#1b1b22;border:2px solid #0a0a0e;border-radius:13px;padding:14px 17px;box-shadow:0 4px 0 #73737a,0 7px 0 #0a0a0e;font-size:12px;line-height:1.8;margin:22px 0 0}.hero-fee strong{font-size:16px}.request-ack{display:flex;align-items:flex-start;gap:10px;font-size:11px;line-height:1.7;margin-top:23px}.request-ack input{width:19px;height:19px;min-height:19px;flex-shrink:0;box-shadow:none;margin:2px 0 0}#whatsapp-fallback .button{font-size:12px;width:100%;white-space:normal}#whatsapp-fallback:empty{display:none}
+[hidden]{display:none!important}

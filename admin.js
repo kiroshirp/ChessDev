@@ -1,6 +1,7 @@
 import { authenticate, readCatalog, saveCatalog } from './catalog-api.mjs';
 import { catalogProducts, validateProduct, escapeHTML, nextProductId } from './inventory.mjs';
 import { euros } from './rental.mjs';
+import { mountOrders,clearOrders } from './admin-orders.mjs';
 
 const el = id => document.getElementById(id);
 let session = null;
@@ -27,6 +28,7 @@ async function refresh() {
 }
 function logout(text = '') {
   session = null;
+  clearOrders();
   catalog = null;
   etag = null;
   el('dashboard').hidden = true;
@@ -78,6 +80,7 @@ el('login-form').addEventListener('submit', async event => {
   try {
     session = await authenticate(el('username').value.trim(), el('password').value);
     await refresh();
+    await mountOrders(session,refresh);
     el('login-panel').hidden = true;
     el('dashboard').hidden = false;
     el('login-feedback').textContent = '';

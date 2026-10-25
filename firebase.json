@@ -4,9 +4,16 @@
     "rules": "database.rules.json"
   },
   "auth": {
-    "authorizedDomains": ["kiroshirp.github.io", "localhost", "127.0.0.1", "chessdev-topchess.firebaseapp.com", "chessdev-topchess.web.app"],
+    "authorizedDomains": [
+      "kiroshirp.github.io",
+      "localhost",
+      "127.0.0.1",
+      "chessdev-topchess.firebaseapp.com",
+      "chessdev-topchess.web.app"
+    ],
     "providers": {
-      "emailPassword": true
+      "emailPassword": true,
+      "anonymous": true
     }
   }
 }

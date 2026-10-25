@@ -1,10 +1,16 @@
 import { calculate, euros, madridDateTime, madridTimestamp, minimumPickup, prepareRequest, rentalWindow, whatsappUrl } from './rental.mjs?v=plazos-10h-48h';
 
 import { readCatalog } from './catalog-api.mjs';
+import { readAvailability,submitRequest } from './operations-api.mjs';
+import { availableProducts,registeredSummary } from './orders.mjs';
 import { catalogProducts, escapeHTML } from './inventory.mjs';
 import { startRoutes } from './routing.mjs';
 
 let products = [];
+let baseProducts=[];
+let availability={};
+let registered=null;
+let submitting=false;
 let revision = null;
 let catalogReady = false;
 const byId = id => document.getElementById(id);
@@ -34,7 +40,7 @@ function productArt(product) {
 }
 
 function renderProducts() {
-  byId('catalog').innerHTML = products.map(safe).map(product => `<article class="product-card"><div class="product-visual"><span class="product-count">Hasta ${product.max} ${product.max === 1 ? 'unidad' : 'unidades'}</span>${productArt(product)}</div><div class="product-info"><h3>${product.name}</h3><span class="product-price">${euros(product.price)} <small>/ ud.</small></span></div><div class="product-bottom"><p>${product.description}${product.replacementValue ? `<br>Reposición: ${euros(product.replacementValue)}/ud.` : ''}</p><button type="button" class="add-button" data-add="${product.id}" aria-label="Añadir ${product.name.toLowerCase()} a la solicitud">+</button></div></article>`).join('');
+  byId('catalog').innerHTML = products.map(safe).map(product => `<article class="product-card" data-card-product="${product.id}"><div class="product-visual"><span class="product-count">Hasta ${product.max} ${product.max === 1 ? 'unidad' : 'unidades'}</span>${productArt(product)}</div><div class="product-info"><h3>${product.name}</h3><span class="product-price">${euros(product.price)} <small>/ ud.</small></span></div><div class="product-bottom"><p>${product.description}${product.replacementValue ? `<br>Reposición: ${euros(product.replacementValue)}/ud.` : ''}</p><button type="button" class="add-button" data-add="${product.id}" aria-label="Añadir ${product.name.toLowerCase()} a la solicitud">+</button></div></article>`).join('');
   byId('quantity-list').innerHTML = products.map(safe).map(product => `<div class="quantity-row"><label class="quantity-name" for="qty-${product.id}">${product.plural}<small>${euros(product.price)}/ud. · máximo ${product.max}${product.review ? ' · revisión previa' : ''}</small></label><div class="quantity-control"><button type="button" data-step="-1" data-product="${product.id}" aria-label="Quitar una unidad de ${product.name.toLowerCase()}">−</button><input id="qty-${product.id}" name="${product.id}" type="number" min="0" max="${product.max}" step="1" value="${quantities[product.id] || 0}" required inputmode="numeric"><button type="button" data-step="1" data-product="${product.id}" aria-label="Añadir una unidad de ${product.name.toLowerCase()}">+</button></div></div>`).join('');
 }
 
@@ -44,6 +50,10 @@ function syncInputs() {
 
 function updateEstimate() {
   syncInputs();
+  let start=null,end=null;
+  try { start=madridTimestamp(pickup.value);end=madridTimestamp(returns.value); } catch {}
+  products=availableProducts(baseProducts,availability,start,end);
+  for(const p of products){const input=byId(`qty-${p.id}`);if(input)input.max=p.max;const badge=document.querySelector(`[data-card-product="${p.id}"] .product-count`);if(badge)badge.textContent=`Hasta ${p.max} ${p.max===1?'unidad':'unidades'}`;}
   let quote;
   try { quote = calculate(quantities, products); }
   catch (error) {
@@ -72,7 +82,7 @@ function updateEstimate() {
   byId('grand-total').classList.toggle('custom-quote', !!timingError);
   byId('grand-total').textContent = timingError ? 'Revisa los horarios' : euros(quote.total);
   byId('total-label').textContent = timingError ? 'Horario no válido' : 'Total estimado';
-  byId('duration-note').textContent = timingError || 'Alquiler máximo de 48 horas. Solicitud con un mínimo de 10 horas de antelación. Horas de Madrid y recogida con confirmación previa. Importe e impuestos a confirmar.';
+  byId('duration-note').textContent = timingError || 'Alquiler máximo de 48 horas. Solicitud con un mínimo de 10 horas de antelación. Horas de Madrid y recogida con confirmación previa. IVA incluido. Precio sujeto a confirmación del pedido.';
   for (const product of products) {
     form.querySelector(`[data-product="${product.id}"][data-step="-1"]`).disabled = quantities[product.id] <= 0;
     form.querySelector(`[data-product="${product.id}"][data-step="1"]`).disabled = quantities[product.id] >= product.max;
@@ -94,7 +104,8 @@ async function validatedRequest() {
   if (!catalogReady) { feedback.textContent = 'Espera a que se cargue el catálogo.'; return null; }
   try {
     syncInputs();
-    const latest = await readCatalog();
+    const [latest,blocks] = await Promise.all([readCatalog(),readAvailability()]);
+    availability=blocks;
     if (latest.catalog.revision !== revision) {
       applyCatalog(latest.catalog);
       feedback.textContent = 'El catálogo ha cambiado. Revisa las cantidades y el presupuesto actualizado antes de enviar.';
@@ -105,7 +116,9 @@ async function validatedRequest() {
   updateEstimate();
   if (!form.reportValidity()) return null;
   try {
-    return prepareRequest({ quantities, pickup: pickup.value, returns: returns.value, customer: byId('customer').value, club: byId('club').value, notes: byId('notes').value }, Date.now(), products);
+    const data={ quantities:structuredClone(quantities), pickup:pickup.value, returns:returns.value, customer:byId('customer').value, club:byId('club').value, contact:byId('customer-contact').value, notes:byId('notes').value };
+    prepareRequest(data,Date.now(),products);
+    return data;
   } catch (error) {
     feedback.textContent = error.message;
     if (!calculate(quantities, products).units) document.querySelector('#quantity-list input')?.focus();
@@ -114,10 +127,13 @@ async function validatedRequest() {
 }
 
 function applyCatalog(catalog) {
-  products = catalogProducts(catalog, { publicOnly: true });
+  baseProducts = catalogProducts(catalog, { publicOnly: true });
+  products=baseProducts;
   revision = catalog.revision;
   quantities = Object.fromEntries(products.map(product => [product.id, Math.max(0, Math.min(product.max, quantities[product.id] || 0))]));
   renderProducts();
+  const sample=baseProducts.find(p=>p.kind==='board'&&p.max>0);
+  byId('single-item-example').textContent=sample?`Por ejemplo, una unidad de ${sample.name.toLowerCase()}: ${euros(sample.price)} de material + 50 € de gestión = ${euros(sample.price+50)}.`:'El total es 50 € de gestión más las unidades seleccionadas, según el catálogo actual.';
   catalogReady = true;
   updateEstimate();
   if (!products.length) byId('catalog').textContent = 'No hay material publicado en este momento. Escríbenos por WhatsApp.';
@@ -126,7 +142,7 @@ function applyCatalog(catalog) {
 let routesStarted = false;
 function startRoutesOnce() { if (!routesStarted) { startRoutes(); routesStarted = true; } }
 async function loadCatalog() {
-  try { applyCatalog((await readCatalog()).catalog); }
+  try { const [current,blocks]=await Promise.all([readCatalog(),readAvailability()]);availability=blocks;applyCatalog(current.catalog); }
   catch {
     byId('catalog').textContent = 'No se ha podido cargar el catálogo.';
     byId('catalog-feedback').textContent = 'Recarga la página o escribe por WhatsApp a TopChess: 613 133 823. Solo mensajes.';
@@ -156,29 +172,26 @@ form.addEventListener('input', event => {
   } else feedback.textContent = '';
 });
 
-form.addEventListener('submit', async event => {
-  event.preventDefault();
-  const text = await validatedRequest();
-  if (!text) return;
-  const link = document.createElement('a');
-  link.href = whatsappUrl(text); link.target = '_blank'; link.rel = 'noopener noreferrer';
-  link.textContent = 'Abrir mi solicitud en WhatsApp ↗'; link.className = 'text-link';
+function showRegistered(result) {
+  registered=result.request;
+  const text=registeredSummary(registered);
+  const link=document.createElement('a');link.href=whatsappUrl(text);link.target='_blank';link.rel='noopener noreferrer';link.className='button primary';link.textContent='Avisar a TopChess por WhatsApp ↗';
   byId('whatsapp-fallback').replaceChildren(link);
-  link.click();
-  feedback.textContent = 'Solicitud preparada. Revísala y pulsa enviar en WhatsApp. La disponibilidad aún no está confirmada.';
+  byId('copy-request').hidden=false;
+  form.querySelector('button[type="submit"]').disabled=true;
+  for(const input of form.querySelectorAll('input,textarea:not(#request-text),[data-step]'))input.disabled=true;
+  for(const button of document.querySelectorAll('[data-add]'))button.disabled=true;
+  feedback.textContent=`Solicitud registrada: ${registered.reference}. TopChess la revisará. Todavía no es una reserva y no se ha enviado ningún WhatsApp. ${result.existing?'Se muestra tu solicitud anterior para evitar duplicados.':''}`;
+}
+form.addEventListener('submit',async event=>{
+  event.preventDefault();if(submitting||registered)return;
+  submitting=true;const button=form.querySelector('button[type="submit"]');button.disabled=true;
+  try { const data=await validatedRequest();if(!data)return;feedback.textContent='Registrando la solicitud…';showRegistered(await submitRequest(data,products)); }
+  catch(error){feedback.textContent=error.message;}
+  finally{submitting=false;if(!registered)button.disabled=false;}
 });
-
-byId('copy-request').addEventListener('click', async () => {
-  const text = await validatedRequest();
-  if (!text) return;
-  try {
-    await navigator.clipboard.writeText(text);
-    feedback.textContent = 'Solicitud copiada. Pégala y envíala por mensaje a TopChess: 613 133 823. Todavía no se ha enviado.';
-  } catch {
-    byId('manual-copy').hidden = false;
-    byId('request-text').value = text;
-    byId('request-text').focus();
-    byId('request-text').select();
-    feedback.textContent = 'Copia el resumen y envíalo por mensaje a TopChess: 613 133 823. Todavía no se ha enviado.';
-  }
+byId('copy-request').addEventListener('click',async()=>{
+  if(!registered)return;const text=registeredSummary(registered);
+  try{await navigator.clipboard.writeText(text);feedback.textContent=`Resumen de ${registered.reference} copiado. La solicitud está registrada; la reserva sigue pendiente de confirmación.`;}
+  catch{byId('manual-copy').hidden=false;byId('request-text').value=text;byId('request-text').focus();byId('request-text').select();}
 });

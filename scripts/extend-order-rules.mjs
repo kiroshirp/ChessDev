@@ -1,0 +1,40 @@
+// Amplía el esquema existente; mantiene la autorización y validación del catálogo.
+import {readFile,writeFile} from 'node:fs/promises';
+import {TERMS_VERSION} from '../orders.mjs';
+const path=new URL('../database.rules.json',import.meta.url);
+const config=JSON.parse(await readFile(path,'utf8')),rules=config.rules;
+const admin="auth != null && auth.uid === 'chessdev-admin'";
+const s=(max,min=0)=>({'.validate':`newData.isString() && newData.val().length >= ${min} && newData.val().length <= ${max}`});
+const n=(max=Number.MAX_SAFE_INTEGER,min=0,integer=false)=>({'.validate':`newData.isNumber() && newData.val() >= ${min} && newData.val() <= ${max}${integer?' && newData.val() % 1 === 0':''}`});
+const boolean={'.validate':'newData.isBoolean()'};
+const money={'.validate':'newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && ((newData.val() * 100) % 1 < 0.000001 || (newData.val() * 100) % 1 > 0.999999)'};
+function closed(fields,extra='true',optional=[]) {
+  return {'.validate':`newData.hasChildren(${JSON.stringify(Object.keys(fields).filter(key=>!optional.includes(key)))}) && (${extra})`,...fields,'$other':{'.validate':false}};
+}
+const productPattern="/^(boards|pieces|dgt|leap|folding|mural|giant|item-(0[0-9]|[1-8][0-9]|9[0-2]))$/";
+const itemBase={name:s(100,1),quantity:n(10000,1,true),unitPrice:money,replacementValue:money};
+const items=(publicRequest=false)=>({'.validate':'newData.hasChildren()','$pid':closed(itemBase,`$pid.matches(${productPattern})${publicRequest?" && (data.exists() || (root.child('catalog/products').child($pid).child('visible').val() === true && newData.child('quantity').val() <= root.child('catalog/products').child($pid).child('max').val() && newData.child('unitPrice').val() === root.child('catalog/products').child($pid).child('price').val() && newData.child('replacementValue').val() === root.child('catalog/products').child($pid).child('replacementValue').val() && newData.child('name').val() === root.child('catalog/products').child($pid).child('name').val()))":""}`)});
+const requestFields={id:s(128,1),reference:{'.validate':"newData.isString() && newData.val().matches(/^CD-[A-F0-9]{12}$/)"},createdAt:n(),pickupAt:n(),returnAt:n(),customer:s(100,1),organization:s(160,1),contact:{'.validate':'newData.isString() && newData.val().matches(/^[+0-9 ()-]{7,30}$/)'},notes:s(1000),items:items(true),managementFee:{'.validate':'newData.val() === 50'},termsVersion:s(80,1),status:{'.validate':"newData.val() === 'pending'"}};
+const windowCheck="newData.child('id').val() === $uid && newData.child('returnAt').val() > newData.child('pickupAt').val() && newData.child('returnAt').val() - newData.child('pickupAt').val() <= 172800000";
+const requestRule=closed(requestFields,`${windowCheck} && (data.exists() || (newData.child('createdAt').val() >= now - 60000 && newData.child('createdAt').val() <= now + 60000 && newData.child('pickupAt').val() >= now + 36000000 && newData.child('termsVersion').val() === '${TERMS_VERSION}'))`);
+requestRule['.read']=`${admin} || (auth != null && auth.uid === $uid)`;
+requestRule['.write']=`${admin} || (auth != null && auth.uid === $uid && !data.exists() && newData.exists())`;
+rules['.read']=admin;rules['.write']=`${admin} && newData.hasChildren(['catalog'])`;
+rules['.validate']="newData.hasChildren(['catalog'])";
+rules.managementRevision={'.validate':"newData.isNumber() && newData.val() % 1 === 0 && newData.val() === (data.exists() ? data.val() + 1 : 1)"};
+const guard="newData.parent().child('managementRevision').val() === (data.parent().child('managementRevision').exists() ? data.parent().child('managementRevision').val() + 1 : 1)";
+const originalValidation=rules.catalog['.validate'].split(" && (newData.parent().child('managementRevision')")[0];
+rules.catalog['.validate']=`${originalValidation} && (${guard})`;
+rules.requests={'$uid':requestRule};
+const returnItems={'$pid':closed({returned:n(10000,0,true),damaged:n(10000,0,true),note:s(300)},`$pid.matches(${productPattern}) && newData.child('damaged').val() <= newData.child('returned').val()`)};
+const returnRecord=closed({at:n(),note:s(1000),paperSigned:boolean,items:returnItems},'true',['items']);
+const provider=closed({legalName:s(160),taxId:s(40),paymentInstructions:s(1000)});
+const bookingFields={...requestFields,status:{'.validate':"newData.val() === 'draft' || newData.val() === 'confirmed' || newData.val() === 'collected' || newData.val() === 'returned' || newData.val() === 'cancelled' || newData.val() === 'incident' || newData.val() === 'resolved'"},items:items(),customerDocument:s(40),changedAt:n(),clientAccepted:boolean,terms:closed({tax:s(100,1),payment:s(1000,1),cancellation:s(1000,1),delay:s(1500,1)}),provider,payment:closed({status:{'.validate':"newData.val() === 'pending' || newData.val() === 'received' || newData.val() === 'refunded'"},reference:s(100),at:n()}),handover:closed({at:n(),note:s(1000),paperSigned:boolean,contractSigned:boolean}),returnRecord,incident:closed({open:boolean,note:s(1000),resolvedAt:n()}),returnHistory:{'$record':{...returnRecord,'.validate':`${returnRecord['.validate']} && $record.matches(/^r[0-9]{13}$/)`}}};
+const newRoot="newData.parent().parent()";
+const handoverCheck="(newData.child('handover/at').val() === 0 || (newData.child('handover/at').val() >= newData.child('createdAt').val() + 36000000 && newData.child('handover/at').val() <= now + 60000 && newData.child('returnAt').val() > newData.child('handover/at').val() && newData.child('returnAt').val() - newData.child('handover/at').val() <= 172800000 && newData.child('handover/paperSigned').val() === true && newData.child('handover/contractSigned').val() === true))";
+rules.bookings={'$uid':closed(bookingFields,`${windowCheck} && ${handoverCheck} && ${newRoot}.child('managementRevision').val() === (data.parent().parent().child('managementRevision').exists() ? data.parent().parent().child('managementRevision').val() + 1 : 1)`,['returnHistory'])};
+rules.availability={'.read':true,'$uid':closed({pickupAt:n(),returnAt:n(),state:{'.validate':"newData.val() === 'confirmed' || newData.val() === 'collected' || newData.val() === 'incident'"},indefinite:boolean,items:{'.validate':'newData.hasChildren()','$pid':{'.validate':`$pid.matches(${productPattern}) && newData.isNumber() && newData.val() > 0 && newData.val() % 1 === 0 && newData.val() <= 10000`}}},`newData.parent().parent().child('bookings').child($uid).exists() && newData.child('state').val() === newData.parent().parent().child('bookings').child($uid).child('status').val() && newData.child('pickupAt').val() === newData.parent().parent().child('bookings').child($uid).child('pickupAt').val() && newData.child('returnAt').val() === newData.parent().parent().child('bookings').child($uid).child('returnAt').val()`) };
+rules.settings=provider;
+rules.$other={'.validate':false};
+await writeFile(path,JSON.stringify(config,null,2)+'\n');
+console.log('Reglas de solicitudes privadas, reservas y transacciones generadas.');

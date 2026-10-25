@@ -1,5 +1,7 @@
 import { FIREBASE } from './firebase-config.mjs';
 import { validateCatalog } from './inventory.mjs';
+import { mutateState } from './operations-api.mjs';
+import { assertCatalogChange } from './orders.mjs';
 
 export async function readCatalog() {
   const response = await fetch(`${FIREBASE.databaseURL}/catalog.json`, { cache: 'no-store', headers: { 'X-Firebase-ETag': 'true' }, signal: AbortSignal.timeout(12000) });
@@ -23,11 +25,10 @@ export async function saveCatalog(catalog, etag, session) {
   validateCatalog(catalog);
   if (!session || session.expiresAt <= Date.now()) throw new Error('La sesión ha caducado. Vuelve a iniciar sesión.');
   if (!etag) throw new Error('Recarga el catálogo antes de guardar.');
-  const response = await fetch(`${FIREBASE.databaseURL}/catalog.json?auth=${encodeURIComponent(session.token)}`, {
-    method: 'PUT', headers: { 'Content-Type': 'application/json', 'if-match': etag }, body: JSON.stringify(catalog), signal: AbortSignal.timeout(15000),
+  const result=await mutateState(session,state=>{
+    if(catalog.revision!==state.catalog.revision+1)throw Error('Hay cambios en la gestión. Recarga antes de guardar el material.');
+    assertCatalogChange(state,catalog);
+    state.catalog={...catalog,revision:state.catalog.revision};
   });
-  if (response.status === 412) throw new Error('Otro administrador ha cambiado el inventario. Recarga para revisar sus cambios antes de guardar.');
-  if (!response.ok) throw new Error(response.status === 401 || response.status === 403 ? 'No tienes permiso o tu sesión ha caducado. Vuelve a iniciar sesión.' : 'No se ha podido guardar. Comprueba la conexión y recarga antes de reintentar.');
-  // La respuesta al PUT contiene el catálogo confirmado. No hay optimismo local.
-  return validateCatalog(await response.json());
+  return validateCatalog(result.state.catalog);
 }

@@ -29,7 +29,8 @@ test('las reglas exigen esquema exacto, administrador y máximo de 100 claves', 
   const rules = JSON.parse(await readFile(new URL('../database.rules.json', import.meta.url), 'utf8')).rules;
   const root = rules.catalog, item = root.products.$id;
   assert.match(root['.write'], /auth\.uid === 'chessdev-admin'/);
-  assert.equal(rules['.write'], false);
+  assert.match(rules['.write'], /auth\.uid === 'chessdev-admin'/);
+  assert.match(rules['.write'], /hasChildren\(\['catalog'\]\)/);
   assert.equal(root.$other['.validate'], false); assert.equal(item.$other['.validate'], false);
   assert.equal(Object.keys(item).filter(k => !k.startsWith('.') && k !== '$other').length, PRODUCT_FIELDS.length);
   assert.match(root['.validate'], /hasChildren\(\['revision', 'products'\]\)/);
