@@ -4,6 +4,7 @@ Web pública de alquiler urgente de material de ajedrez, hecha por TopChess. Sus
 
 - Responder en español y mantener el frontend estático, accesible y sin dependencias de producción. La petición de administración autoriza Firebase Authentication y Realtime Database en el nuevo proyecto independiente chessdev-topchess, sin facturación.
 - Publicación: GitHub Pages en https://kiroshirp.github.io/ChessDev/ mediante .github/workflows/pages.yml.
+- Recogida confirmada: TopChess, Eugenio Salazar 54, 28002 Madrid. Metros: Concha Espina (línea 9) y Prosperidad (línea 4). Horario con confirmación previa.
 - Contacto confirmado: TopChess, 613 133 823. SOLO MENSAJES. NO LLAMADAS. Las solicitudes se preparan en WhatsApp; el visitante debe pulsar enviar allí.
 - No inventar dirección, existencias en tiempo real, atención 24 h, disponibilidad garantizada ni confirmaciones automáticas.
 - Precios: 50 € de gestión por solicitud confirmada + material; sin fianza. Pérdida, no devolución o daño irreparable imputable al cliente: reposición íntegra a nuevo equivalente, con valor documentado y acordado antes de contratar. Daños reparables: coste de reparación; desgaste normal excluido. Más de 48 h requiere presupuesto específico. Impuestos a confirmar en el presupuesto definitivo.

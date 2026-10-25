@@ -44,7 +44,7 @@ Nombre y apellidos y club o entidad son campos separados y obligatorios. El clie
 
 50 € de gestión urgente + material por unidad para hasta 48 horas. Más de 48 horas requiere presupuesto específico. Precio final e impuestos a confirmar. No se cobra fianza. Las condiciones de reposición a nuevo por pérdida, no devolución o daño irreparable imputable al cliente se acuerdan antes de contratar. Daños reparables: coste de reparación; desgaste normal excluido.
 
-El contrato descargable es un modelo pendiente de completar con los datos fiscales, los valores de reposición y las condiciones particulares y de revisar antes de usar. El transporte es presencial y la dirección se acuerda por mensaje.
+El contrato descargable es un modelo pendiente de completar con los datos fiscales, los valores de reposición y las condiciones particulares y de revisar antes de usar. La recogida y devolución son presenciales en TopChess, Eugenio Salazar 54, 28002 Madrid. Metros cercanos: Concha Espina (línea 9) y Prosperidad (línea 4). La hora se confirma por mensaje.
 
 ## Comprobaciones
 

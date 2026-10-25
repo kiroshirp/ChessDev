@@ -1,5 +1,5 @@
 export const MANAGEMENT_FEE = 50;
-export const CONTACT = Object.freeze({ name: 'TopChess', phone: '613 133 823', whatsapp: '34613133823' });
+export const CONTACT = Object.freeze({ name: 'TopChess', phone: '613 133 823', whatsapp: '34613133823', address: 'Eugenio Salazar 54, 28002 Madrid', metro: 'Concha Espina (línea 9) y Prosperidad (línea 4)' });
 export const PRODUCTS = Object.freeze([
   { id: 'boards', name: 'Tablero normal', plural: 'Tableros normales', price: 5, max: 15, kind: 'board', description: 'La base de una buena partida.' },
   { id: 'pieces', name: 'Juego de piezas', plural: 'Juegos completos de piezas', price: 5, max: 12, kind: 'pieces', description: 'Juego completo. Recuento previo.', review: true },
@@ -65,7 +65,8 @@ export function prepareRequest({ quantities, pickup, returns, customer = '', clu
     'Importe, impuestos, disponibilidad y horario pendientes de confirmación.',
     'Reposición: pérdida, no devolución o daño irreparable imputable al cliente implica abonar el coste íntegro de un producto nuevo equivalente, con valor documentado y acordado antes de contratar. Daños reparables: coste de reparación. Se excluye el desgaste normal.',
     ...(notes.trim() ? ['', `Observaciones: ${notes.trim()}`] : []),
-    '', 'Por favor, confirmad el presupuesto, los valores de reposición a nuevo, las condiciones y la dirección de recogida por mensaje.',
+    '', `Recogida en ${CONTACT.name}: ${CONTACT.address}.`, `Metros cercanos: ${CONTACT.metro}.`,
+    'Por favor, confirmad el presupuesto, los valores de reposición a nuevo, las condiciones y la hora de recogida por mensaje.',
   ].join('\n');
 }
 
