@@ -42,7 +42,7 @@ Para actualizar las reglas o la configuración de acceso usar la sesión autoriz
 
 Nombre y apellidos y club o entidad son campos separados y obligatorios. El cliente revisa y envía el resumen en WhatsApp. La web no confirma reservas ni cobra.
 
-50 € de gestión urgente + material por unidad para hasta 48 horas. Más de 48 horas requiere presupuesto específico. Precio final e impuestos a confirmar. No se cobra fianza. Las condiciones de reposición a nuevo por pérdida, no devolución o daño irreparable imputable al cliente se acuerdan antes de contratar. Daños reparables: coste de reparación; desgaste normal excluido.
+50 € de gestión urgente + material por unidad. Duración máxima: 48 horas reales entre recogida y devolución. Las solicitudes deben recibirse con un mínimo de 10 horas de antelación a la recogida. No se aceptan plazos superiores a 48 horas ni solicitudes con menos de 10 horas de margen. El formulario solicita fecha y hora, valida en Europe/Madrid y rechaza horas ambiguas o inexistentes en los cambios de horario. Precio final e impuestos a confirmar. No se cobra fianza. Las condiciones de reposición a nuevo por pérdida, no devolución o daño irreparable imputable al cliente se acuerdan antes de contratar. Daños reparables: coste de reparación; desgaste normal excluido.
 
 El contrato descargable es un modelo pendiente de completar con los datos fiscales, los valores de reposición y las condiciones particulares y de revisar antes de usar. La recogida y devolución son presenciales en TopChess, Eugenio Salazar 54, 28002 Madrid. Metros cercanos: Concha Espina (línea 9) y Prosperidad (línea 4). La hora se confirma por mensaje.
 

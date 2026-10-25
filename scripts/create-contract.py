@@ -58,7 +58,8 @@ frame(1)
 txt(41, 720, 'Material listo. Reglas claras.', 25, True)
 txt(42, 696, 'CONTRATO DE ALQUILER DE MATERIAL DE AJEDREZ', 9, mono=True, color=MUTED)
 panel(392, 278, '01 / IDENTIFICACIÓN DE LAS PARTES')
-field('Prestador: nombre o razón social', 57, 601, 481)
+field('Prestador / representante', 57, 601, 481)
+txt(65, 609, 'Andrés Liñán, fundador de TopChess', 9, True, color=EDGE)
 field('NIF del prestador', 57, 554, 132)
 field('Domicilio fiscal del prestador', 201, 554, 337)
 field('Nombre y apellidos del cliente (obligatorio)', 57, 507, 273)
@@ -74,8 +75,9 @@ field('Recogida: fecha y hora', 57, 259, 222)
 field('Devolución: fecha y hora', 291, 259, 247)
 
 panel(73, 140, '03 / PRECIO Y ENTREGA')
-field('Dirección de recogida y devolución acordada', 57, 145, 481)
-txt(57, 126, 'Gestión urgente: 50 EUR + material. Más de 48 h: presupuesto específico.', 8)
+field('Recogida y devolución en TopChess', 57, 145, 481)
+txt(65, 153, 'Eugenio Salazar 54, 28002 Madrid', 9, color=EDGE)
+txt(57, 126, 'Gestión: 50 EUR + material. Alquiler: máximo 48 h. Antelación: mínimo 10 h.', 8)
 field('Total definitivo, impuestos incluidos (EUR)', 57, 88, 222)
 field('Pago: medio y justificante', 291, 88, 247)
 C.showPage()
@@ -99,10 +101,10 @@ for i, name in enumerate(names):
     C.line(57, y-6, 538, y-6)
 for x in columns[1:-1]: C.line(x, 461, x, 628)
 
-panel(212, 212, '05 / RESPONSABILIDAD Y REPOSICIÓN')
+panel(212, 212, '05 / PLAZOS, RESPONSABILIDAD Y REPOSICIÓN')
 y = 378
 for text in [
-    'El cliente se obliga a devolver todas las unidades en la fecha acordada y en el estado registrado. El inventario se comprueba con ambas partes al recoger y al devolver.',
+    'La solicitud debe recibirse al menos 10 horas antes de la recogida. No se aceptan solicitudes con menos margen. El alquiler dura como máximo 48 horas reales, desde la recogida hasta la devolución. Los horarios son de Madrid y requieren confirmación de TopChess. El cliente devuelve todas las unidades en el estado registrado; se revisa el inventario con ambas partes.',
     'En caso de pérdida, falta de devolución tras requerimiento o daño irreparable imputable al cliente, este abonará el coste íntegro de reposición de la unidad afectada por un producto nuevo del mismo modelo o de características equivalentes. El valor por unidad se documentará y acordará en el inventario antes de contratar.',
     'Los daños reparables imputables al cliente se liquidarán por el coste de reparación documentado. Se excluyen el desgaste normal y los deterioros ajenos a su responsabilidad. Toda reclamación deberá justificarse y respetar los derechos imperativos del cliente.',
 ]:
@@ -111,8 +113,9 @@ for text in [
 
 panel(67, 127, '06 / ACEPTACIÓN Y CONDICIONES PENDIENTES')
 paragraph('Antes de utilizar este modelo deben completarse los datos fiscales, los precios de reposición y las condiciones de cancelación, desistimiento y protección de datos. No se presume que los 50 EUR sean siempre no reembolsables. Adjuntar registro de devolución e incidencias.', 149, size=7.3, leading=11)
-field('Firma del prestador', 57, 83, 222, 22)
-field('Firma del cliente / representante', 291, 83, 247, 22)
+field('Firma del prestador', 57, 87, 222, 22)
+txt(57, 74, 'Andrés Liñán / Fundador de TopChess', 7.3, True)
+field('Firma del cliente / representante', 291, 87, 247, 22)
 C.showPage()
 C.save()
 print(f'PDF actualizado: {OUT}')

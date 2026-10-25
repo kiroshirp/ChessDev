@@ -1,4 +1,4 @@
-import { calculate, euros, localDate, prepareRequest, rentalDays, whatsappUrl } from './rental.mjs';
+import { calculate, euros, madridDateTime, madridTimestamp, minimumPickup, prepareRequest, rentalWindow, whatsappUrl } from './rental.mjs?v=plazos-10h-48h';
 
 import { readCatalog } from './catalog-api.mjs';
 import { catalogProducts, escapeHTML } from './inventory.mjs';
@@ -56,18 +56,23 @@ function updateEstimate() {
   byId('manual-copy').hidden = true;
   byId('unit-count').textContent = `(${quote.units} ud.)`;
   byId('material-total').textContent = euros(quote.material);
-  let custom = false;
+  let timingError = '';
+  pickup.setCustomValidity('');
   returns.setCustomValidity('');
+  pickup.min = minimumPickup();
+  returns.min = pickup.value || pickup.min;
+  if (pickup.value) {
+    try { returns.max = madridDateTime(madridTimestamp(pickup.value) + 48 * 3600000); }
+    catch (error) { pickup.setCustomValidity(error.message); }
+  } else returns.removeAttribute('max');
   if (pickup.value && returns.value) {
-    try { custom = rentalDays(pickup.value, returns.value) > 2; }
-    catch (error) { returns.setCustomValidity(error.message); }
+    try { rentalWindow(pickup.value, returns.value); }
+    catch (error) { timingError = error.message; returns.setCustomValidity(error.message); }
   }
-  byId('grand-total').classList.toggle('custom-quote', custom);
-  byId('grand-total').textContent = custom ? 'A consultar' : euros(quote.total);
-  byId('total-label').textContent = custom ? 'Presupuesto específico' : 'Total estimado';
-  byId('duration-note').textContent = custom
-    ? 'Más de 48 horas: el material requiere una tarifa específica. Los precios por unidad mostrados corresponden a hasta 48 horas. Importe e impuestos a confirmar.'
-    : 'Hasta 48 horas, con horas de recogida y devolución a acordar. Importe e impuestos a confirmar en el presupuesto definitivo.';
+  byId('grand-total').classList.toggle('custom-quote', !!timingError);
+  byId('grand-total').textContent = timingError ? 'Revisa los horarios' : euros(quote.total);
+  byId('total-label').textContent = timingError ? 'Horario no válido' : 'Total estimado';
+  byId('duration-note').textContent = timingError || 'Alquiler máximo de 48 horas. Solicitud con un mínimo de 10 horas de antelación. Horas de Madrid y recogida con confirmación previa. Importe e impuestos a confirmar.';
   for (const product of products) {
     form.querySelector(`[data-product="${product.id}"][data-step="-1"]`).disabled = quantities[product.id] <= 0;
     form.querySelector(`[data-product="${product.id}"][data-step="1"]`).disabled = quantities[product.id] >= product.max;
@@ -97,13 +102,10 @@ async function validatedRequest() {
     }
   } catch { feedback.textContent = 'No se ha podido comprobar la disponibilidad actual. Vuelve a intentarlo.'; return null; }
 
-  const today = localDate();
-  pickup.min = today;
-  returns.min = pickup.value || today;
   updateEstimate();
   if (!form.reportValidity()) return null;
   try {
-    return prepareRequest({ quantities, pickup: pickup.value, returns: returns.value, customer: byId('customer').value, club: byId('club').value, notes: byId('notes').value }, today, products);
+    return prepareRequest({ quantities, pickup: pickup.value, returns: returns.value, customer: byId('customer').value, club: byId('club').value, notes: byId('notes').value }, Date.now(), products);
   } catch (error) {
     feedback.textContent = error.message;
     if (!calculate(quantities, products).units) document.querySelector('#quantity-list input')?.focus();
@@ -134,7 +136,7 @@ async function loadCatalog() {
   }
 }
 loadCatalog();
-pickup.min = localDate();
+pickup.min = minimumPickup();
 returns.min = pickup.min;
 
 
@@ -149,8 +151,7 @@ document.addEventListener('click', event => {
 });
 
 form.addEventListener('input', event => {
-  if (event.target.type === 'number' || event.target.type === 'date') {
-    if (event.target === pickup) returns.min = pickup.value || localDate();
+  if (event.target.type === 'number' || event.target.type === 'datetime-local') {
     updateEstimate();
   } else feedback.textContent = '';
 });

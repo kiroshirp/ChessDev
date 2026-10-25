@@ -10,7 +10,7 @@ test('inventario editable: precios y unidades actuales en el presupuesto', () =>
   const products = catalogProducts(catalog, { publicOnly: true });
   assert.equal(calculate({ boards: 2 }, products).total, 65);
   assert.throws(() => calculate({ boards: 3 }, products));
-  const request = prepareRequest({ quantities: { boards: 2 }, pickup: '2026-10-26', returns: '2026-10-27', customer: 'Persona', club: 'Club' }, '2026-10-25', products);
+  const request = prepareRequest({ quantities: { boards: 2 }, pickup: '2026-10-26T12:00', returns: '2026-10-27T12:00', customer: 'Persona', club: 'Club' }, Date.UTC(2026, 9, 25, 8), products);
   assert.match(request, /65,00/);
 });
 test('ocultar y ordenar material se refleja en el catálogo público', () => {
