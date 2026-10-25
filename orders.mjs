@@ -124,6 +124,7 @@ export function changeBooking(state,id,action,payload={},now=Date.now()) {
     if(b.status!=='confirmed'||b.payment.status!=='received')throw Error('La reserva debe estar confirmada y la transferencia recibida.');
     if(!payload.paperSigned||!payload.contractSigned)throw Error('Confirma las firmas del contrato y del acta de entrega en papel.');
     if(now-b.createdAt<10*3600000)throw Error('Deben transcurrir al menos 10 horas desde la solicitud antes de entregar.');
+    if(now<b.pickupAt)throw Error('No se puede registrar la entrega antes de la hora de recogida reservada.');
     if(b.returnAt<=now||b.returnAt-now>48*3600000)throw Error('La entrega real debe permitir una devolución posterior y un alquiler de como máximo 48 horas.');
     b.status='collected';b.handover={at:now,note:text(payload.note||'',1000,'el estado de entrega',true),paperSigned:true,contractSigned:true};
   } else if(action==='return') {

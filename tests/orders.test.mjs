@@ -30,6 +30,12 @@ test('la entrega exige transferencia recibida y ambas actas/contrato firmados',(
 test('una entrega vencida bloquea también reservas posteriores hasta devolver',()=>{
   const b=newBooking(request());b.status='collected';const hold=availabilityFor(b,b.returnAt-1);assert.equal(peakHeld({a:hold},'boards',b.returnAt+3600000,b.returnAt+7200000,'',b.returnAt+1),2);
 });
+test('no se entrega antes del inicio reservado ni se devuelve antes de la entrega',()=>{
+  const s=state();s.requests.clientA=request();reviewConfirm(s,'clientA');changeBooking(s,'clientA','payment',{reference:'prueba'},now+3);
+  assert.throws(()=>changeBooking(s,'clientA','collect',{paperSigned:true,contractSigned:true},now+11*3600000),/hora de recogida/);
+  const at=s.requests.clientA.pickupAt;changeBooking(s,'clientA','collect',{paperSigned:true,contractSigned:true},at);
+  assert.throws(()=>changeBooking(s,'clientA','return',{paperSigned:true,items:{boards:{returned:2,damaged:0,note:''}}},at-1),/anterior/);
+});
 test('una devolución parcial o dañada conserva bloqueadas solo las unidades afectadas',()=>{
   const s=state();s.requests.clientA=request();reviewConfirm(s,'clientA');changeBooking(s,'clientA','payment',{reference:'prueba'},now+3);changeBooking(s,'clientA','collect',{paperSigned:true,contractSigned:true},s.requests.clientA.pickupAt);changeBooking(s,'clientA','return',{paperSigned:true,items:{boards:{returned:1,damaged:0,note:'Una pendiente'}}},s.requests.clientA.pickupAt+3600000);assert.equal(s.bookings.clientA.status,'incident');assert.equal(s.availability.clientA.items.boards,1);assert.equal(Object.keys(s.bookings.clientA.returnHistory).length,1);assert.throws(()=>changeBooking(s,'clientA','resolve',{},now+6),/repuesto/);changeBooking(s,'clientA','resolve',{materialRestored:true,note:'Unidad repuesta'},now+7);assert.equal(s.bookings.clientA.status,'resolved');assert.equal(Object.keys(s.availability).length,0);
 });
