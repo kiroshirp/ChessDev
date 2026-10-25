@@ -64,7 +64,9 @@ test('la web publica contacto por mensajes y recursos relativos compatibles con 
   assert.match(html, /613 133 823/);
   assert.match(html, /Hecho por TopChess/);
   assert.doesNotMatch(html, /href="tel:/);
-  assert.doesNotMatch(html, /(?:src|href)="\/(?!\/)/);
+  assert.match(html, /<base href="\/ChessDev\/">/);
+  assert.doesNotMatch(html, /<a[^>]*href="#/);
+  assert.doesNotMatch(html, /<(?:a|link|script)[^>]*(?:src|href)="\/(?!\/)/);
   assert.doesNotMatch(html, /fianza/i);
   assert.match(html, /id="customer"[^>]*required/);
   assert.match(html, /id="club"[^>]*required/);

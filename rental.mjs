@@ -30,11 +30,11 @@ export function rentalDays(pickup, returns) {
   return days;
 }
 
-export function calculate(quantities) {
+export function calculate(quantities, products = PRODUCTS) {
   let units = 0;
   let material = 0;
   const selected = [];
-  for (const product of PRODUCTS) {
+  for (const product of products) {
     const quantity = quantities[product.id] ?? 0;
     if (!Number.isInteger(quantity) || quantity < 0 || quantity > product.max) {
       throw new Error(`La cantidad de ${product.name.toLowerCase()} debe estar entre 0 y ${product.max}.`);
@@ -46,8 +46,8 @@ export function calculate(quantities) {
   return { units, material, total: MANAGEMENT_FEE + material, selected };
 }
 
-export function prepareRequest({ quantities, pickup, returns, customer = '', club = '', notes = '' }, today = localDate()) {
-  const quote = calculate(quantities);
+export function prepareRequest({ quantities, pickup, returns, customer = '', club = '', notes = '' }, today = localDate(), products = PRODUCTS) {
+  const quote = calculate(quantities, products);
   if (!quote.units) throw new Error('Selecciona al menos una unidad de material.');
   const days = rentalDays(pickup, returns);
   if (dayNumber(pickup) < dayNumber(today)) throw new Error('La recogida no puede ser en una fecha pasada.');

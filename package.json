@@ -8,7 +8,7 @@
     "dev": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
     "test": "node --test",
-    "check": "node --check app.js && node --check rental.mjs && node --test"
+    "check": "node --check app.js && node --check admin.js && node --check catalog-api.mjs && node --test"
   },
   "engines": { "node": ">=22" }
 }

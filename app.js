@@ -1,7 +1,15 @@
-import { PRODUCTS, calculate, euros, localDate, prepareRequest, rentalDays, whatsappUrl } from './rental.mjs';
+import { calculate, euros, localDate, prepareRequest, rentalDays, whatsappUrl } from './rental.mjs';
 
+import { readCatalog } from './catalog-api.mjs';
+import { catalogProducts, escapeHTML } from './inventory.mjs';
+import { startRoutes } from './routing.mjs';
+
+let products = [];
+let revision = null;
+let catalogReady = false;
 const byId = id => document.getElementById(id);
-const quantities = Object.fromEntries(PRODUCTS.map(product => [product.id, 0]));
+let quantities = {};
+const safe = product => ({ ...product, name: escapeHTML(product.name), plural: escapeHTML(product.plural), description: escapeHTML(product.description) });
 const form = byId('rental-form');
 const pickup = byId('pickup');
 const returns = byId('return');
@@ -26,18 +34,18 @@ function productArt(product) {
 }
 
 function renderProducts() {
-  byId('catalog').innerHTML = PRODUCTS.map(product => `<article class="product-card"><div class="product-visual"><span class="product-count">Hasta ${product.max} ${product.max === 1 ? 'unidad' : 'unidades'}</span>${productArt(product)}</div><div class="product-info"><h3>${product.name}</h3><span class="product-price">${product.price} € <small>/ ud.</small></span></div><div class="product-bottom"><p>${product.description}</p><button type="button" class="add-button" data-add="${product.id}" aria-label="Añadir ${product.name.toLowerCase()} a la solicitud">+</button></div></article>`).join('');
-  byId('quantity-list').innerHTML = PRODUCTS.map(product => `<div class="quantity-row"><label class="quantity-name" for="qty-${product.id}">${product.plural}<small>${product.price} €/ud. · máximo ${product.max}${product.review ? ' · revisión previa' : ''}</small></label><div class="quantity-control"><button type="button" data-step="-1" data-product="${product.id}" aria-label="Quitar una unidad de ${product.name.toLowerCase()}">−</button><input id="qty-${product.id}" name="${product.id}" type="number" min="0" max="${product.max}" step="1" value="0" required inputmode="numeric"><button type="button" data-step="1" data-product="${product.id}" aria-label="Añadir una unidad de ${product.name.toLowerCase()}">+</button></div></div>`).join('');
+  byId('catalog').innerHTML = products.map(safe).map(product => `<article class="product-card"><div class="product-visual"><span class="product-count">Hasta ${product.max} ${product.max === 1 ? 'unidad' : 'unidades'}</span>${productArt(product)}</div><div class="product-info"><h3>${product.name}</h3><span class="product-price">${euros(product.price)} <small>/ ud.</small></span></div><div class="product-bottom"><p>${product.description}${product.replacementValue ? `<br>Reposición: ${euros(product.replacementValue)}/ud.` : ''}</p><button type="button" class="add-button" data-add="${product.id}" aria-label="Añadir ${product.name.toLowerCase()} a la solicitud">+</button></div></article>`).join('');
+  byId('quantity-list').innerHTML = products.map(safe).map(product => `<div class="quantity-row"><label class="quantity-name" for="qty-${product.id}">${product.plural}<small>${euros(product.price)}/ud. · máximo ${product.max}${product.review ? ' · revisión previa' : ''}</small></label><div class="quantity-control"><button type="button" data-step="-1" data-product="${product.id}" aria-label="Quitar una unidad de ${product.name.toLowerCase()}">−</button><input id="qty-${product.id}" name="${product.id}" type="number" min="0" max="${product.max}" step="1" value="${quantities[product.id] || 0}" required inputmode="numeric"><button type="button" data-step="1" data-product="${product.id}" aria-label="Añadir una unidad de ${product.name.toLowerCase()}">+</button></div></div>`).join('');
 }
 
 function syncInputs() {
-  for (const product of PRODUCTS) quantities[product.id] = Number(byId(`qty-${product.id}`).value);
+  for (const product of products) quantities[product.id] = Number(byId(`qty-${product.id}`)?.value || 0);
 }
 
 function updateEstimate() {
   syncInputs();
   let quote;
-  try { quote = calculate(quantities); }
+  try { quote = calculate(quantities, products); }
   catch (error) {
     byId('grand-total').textContent = 'Revisa cantidades';
     byId('grand-total').classList.add('custom-quote');
@@ -60,7 +68,7 @@ function updateEstimate() {
   byId('duration-note').textContent = custom
     ? 'Más de 48 horas: el material requiere una tarifa específica. Los precios por unidad mostrados corresponden a hasta 48 horas. Importe e impuestos a confirmar.'
     : 'Hasta 48 horas, con horas de recogida y devolución a acordar. Importe e impuestos a confirmar en el presupuesto definitivo.';
-  for (const product of PRODUCTS) {
+  for (const product of products) {
     form.querySelector(`[data-product="${product.id}"][data-step="-1"]`).disabled = quantities[product.id] <= 0;
     form.querySelector(`[data-product="${product.id}"][data-step="1"]`).disabled = quantities[product.id] >= product.max;
     const add = document.querySelector(`[data-add="${product.id}"]`);
@@ -70,32 +78,65 @@ function updateEstimate() {
 }
 
 function changeQuantity(id, step) {
-  const product = PRODUCTS.find(item => item.id === id);
+  const product = products.find(item => item.id === id);
   const input = byId(`qty-${id}`);
   const current = Number(input.value);
   input.value = Math.max(0, Math.min(product.max, (Number.isFinite(current) ? Math.trunc(current) : 0) + step));
   updateEstimate();
 }
 
-function validatedRequest() {
+async function validatedRequest() {
+  if (!catalogReady) { feedback.textContent = 'Espera a que se cargue el catálogo.'; return null; }
+  try {
+    syncInputs();
+    const latest = await readCatalog();
+    if (latest.catalog.revision !== revision) {
+      applyCatalog(latest.catalog);
+      feedback.textContent = 'El catálogo ha cambiado. Revisa las cantidades y el presupuesto actualizado antes de enviar.';
+      return null;
+    }
+  } catch { feedback.textContent = 'No se ha podido comprobar la disponibilidad actual. Vuelve a intentarlo.'; return null; }
+
   const today = localDate();
   pickup.min = today;
   returns.min = pickup.value || today;
   updateEstimate();
   if (!form.reportValidity()) return null;
   try {
-    return prepareRequest({ quantities, pickup: pickup.value, returns: returns.value, customer: byId('customer').value, club: byId('club').value, notes: byId('notes').value }, today);
+    return prepareRequest({ quantities, pickup: pickup.value, returns: returns.value, customer: byId('customer').value, club: byId('club').value, notes: byId('notes').value }, today, products);
   } catch (error) {
     feedback.textContent = error.message;
-    if (!calculate(quantities).units) byId('qty-boards').focus();
+    if (!calculate(quantities, products).units) document.querySelector('#quantity-list input')?.focus();
     return null;
   }
 }
 
-renderProducts();
+function applyCatalog(catalog) {
+  products = catalogProducts(catalog, { publicOnly: true });
+  revision = catalog.revision;
+  quantities = Object.fromEntries(products.map(product => [product.id, Math.max(0, Math.min(product.max, quantities[product.id] || 0))]));
+  renderProducts();
+  catalogReady = true;
+  updateEstimate();
+  if (!products.length) byId('catalog').textContent = 'No hay material publicado en este momento. Escríbenos por WhatsApp.';
+  startRoutesOnce();
+}
+let routesStarted = false;
+function startRoutesOnce() { if (!routesStarted) { startRoutes(); routesStarted = true; } }
+async function loadCatalog() {
+  try { applyCatalog((await readCatalog()).catalog); }
+  catch {
+    byId('catalog').textContent = 'No se ha podido cargar el catálogo.';
+    byId('catalog-feedback').textContent = 'Recarga la página o escribe por WhatsApp a TopChess: 613 133 823. Solo mensajes.';
+    byId('grand-total').textContent = 'No disponible';
+    byId('grand-total').classList.add('custom-quote');
+    startRoutesOnce();
+  }
+}
+loadCatalog();
 pickup.min = localDate();
 returns.min = pickup.min;
-updateEstimate();
+
 
 document.addEventListener('click', event => {
   const add = event.target.closest('[data-add]');
@@ -114,16 +155,20 @@ form.addEventListener('input', event => {
   } else feedback.textContent = '';
 });
 
-form.addEventListener('submit', event => {
+form.addEventListener('submit', async event => {
   event.preventDefault();
-  const text = validatedRequest();
+  const text = await validatedRequest();
   if (!text) return;
-  window.open(whatsappUrl(text), '_blank', 'noopener,noreferrer');
+  const link = document.createElement('a');
+  link.href = whatsappUrl(text); link.target = '_blank'; link.rel = 'noopener noreferrer';
+  link.textContent = 'Abrir mi solicitud en WhatsApp ↗'; link.className = 'text-link';
+  byId('whatsapp-fallback').replaceChildren(link);
+  link.click();
   feedback.textContent = 'Solicitud preparada. Revísala y pulsa enviar en WhatsApp. La disponibilidad aún no está confirmada.';
 });
 
 byId('copy-request').addEventListener('click', async () => {
-  const text = validatedRequest();
+  const text = await validatedRequest();
   if (!text) return;
   try {
     await navigator.clipboard.writeText(text);

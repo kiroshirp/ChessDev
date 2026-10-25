@@ -1,0 +1,32 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "catalog": {
+      ".read": true,
+      ".write": "auth != null && auth.uid === 'chessdev-admin' && newData.exists()",
+      ".validate": "newData.hasChildren(['revision', 'products']) && newData.child('revision').isNumber() && newData.child('revision').val() % 1 === 0 && ((!data.exists() && newData.child('revision').val() === 1) || newData.child('revision').val() === data.child('revision').val() + 1)",
+      "revision": { ".validate": "newData.isNumber() && newData.val() > 0" },
+      "products": {
+        ".validate": "newData.hasChildren()",
+        "$id": {
+          ".validate": "$id.matches(/^(boards|pieces|dgt|leap|folding|mural|giant|item-(0[0-9]|[1-8][0-9]|9[0-2]))$/) && newData.hasChildren(['id','name','plural','price','max','kind','description','review','visible','position','replacementValue']) && newData.child('id').val() === $id",
+          "id": { ".validate": "newData.isString() && newData.val() === $id" },
+          "name": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100 && newData.val().matches(/.*[^\\s].*/)" },
+          "plural": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100 && newData.val().matches(/.*[^\\s].*/)" },
+          "description": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 400 && newData.val().matches(/.*[^\\s].*/)" },
+          "price": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && ((newData.val() * 100) % 1 < 0.000001 || (newData.val() * 100) % 1 > 0.999999)" },
+          "replacementValue": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && ((newData.val() * 100) % 1 < 0.000001 || (newData.val() * 100) % 1 > 0.999999)" },
+          "max": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && newData.val() % 1 === 0" },
+          "position": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000 && newData.val() % 1 === 0" },
+          "kind": { ".validate": "newData.isString() && (newData.val() === 'board' || newData.val() === 'pieces' || newData.val() === 'clock' || newData.val() === 'folding' || newData.val() === 'mural' || newData.val() === 'giant')" },
+          "review": { ".validate": "newData.isBoolean()" },
+          "visible": { ".validate": "newData.isBoolean()" },
+          "$other": { ".validate": false }
+        }
+      },
+      "$other": { ".validate": false }
+    },
+    "$other": { ".read": false, ".write": false }
+  }
+}

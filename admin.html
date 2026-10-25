@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#18181e">
+  <base href="/ChessDev/">
+  <title>Administración · ChessDev</title>
+  <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./theme.css">
+  <link rel="stylesheet" href="./admin.css">
+  <script type="module" src="./admin.js"></script>
+</head>
+<body>
+  <header class="site-header wrap"><a class="brand" href="./">ChessDev<span class="brand-dot">.</span></a><a class="nav-cta" href="./">Ver web pública ↗</a></header>
+  <main class="wrap admin-main">
+    <section id="login-panel" class="admin-login" aria-labelledby="login-title">
+      <p class="eyebrow">Acceso privado / TopChess</p><h1 id="login-title">Todo bajo control.</h1>
+      <p>Gestiona el material, sus precios y las unidades disponibles.</p>
+      <form id="login-form"><label>Usuario<input id="username" name="username" autocomplete="username" required maxlength="100"></label><label>Contraseña<input type="password" id="password" name="password" autocomplete="current-password" required maxlength="256"></label><button class="button primary" type="submit" id="login-button">Entrar al panel <span aria-hidden="true">↗</span></button></form>
+      <p id="login-feedback" class="form-feedback" role="status" aria-live="polite"></p>
+    </section>
+    <section id="dashboard" hidden aria-labelledby="admin-title">
+      <div class="admin-heading"><div><p class="eyebrow">Administración / Inventario</p><h1 id="admin-title">Tu material.</h1><p id="inventory-count"></p></div><div class="admin-actions"><button class="button secondary" type="button" id="reload-catalog">Recargar</button><button class="button primary" type="button" id="new-product">Añadir material +</button><button class="copy-button" id="logout" type="button">Cerrar sesión</button></div></div>
+      <p class="admin-explanation">Los cambios guardados se aplican al catálogo público. «Ocultar» retira un artículo de la web sin eliminarlo. Las unidades se gestionan manualmente; enviar una solicitud no las descuenta.</p>
+      <p id="admin-feedback" class="form-feedback" role="status" aria-live="polite"></p>
+      <div id="admin-products" class="admin-product-list"></div>
+    </section>
+    <dialog id="editor" aria-labelledby="editor-title">
+      <div class="dialog-heading"><h2 id="editor-title">Editar material</h2><button id="close-editor" type="button" class="add-button" aria-label="Cerrar editor">×</button></div>
+      <form id="product-form">
+        <input type="hidden" id="product-id">
+        <div class="field-grid"><label>Nombre del producto<input id="product-name" maxlength="100" required></label><label>Nombre en plural<input id="product-plural" maxlength="100" required></label></div>
+        <label>Descripción<textarea id="product-description" rows="2" maxlength="400" required></textarea></label>
+        <div class="field-grid"><label>Precio de alquiler (€ / unidad)<input id="product-price" type="number" min="0" max="10000" step="0.01" required></label><label>Unidades disponibles<input id="product-stock" type="number" min="0" max="10000" step="1" required></label></div>
+        <div class="field-grid"><label>Tipo de material<select id="product-kind" required><option value="board">Tablero</option><option value="pieces">Piezas</option><option value="clock">Reloj</option><option value="folding">Set plegable</option><option value="mural">Tablero mural</option><option value="giant">Ajedrez gigante</option></select></label><label>Orden en el catálogo<input id="product-position" type="number" min="0" max="10000" step="1" required></label></div>
+        <label>Reposición a nuevo (€ / unidad)<input id="product-replacement" type="number" min="0" max="10000" step="0.01" required><span class="field-hint">Usa 0 si está pendiente de valorar. Debe acordarse antes de contratar.</span></label>
+        <div class="checkbox-row"><label><input type="checkbox" id="product-visible" checked> Visible en la web</label><label><input type="checkbox" id="product-review"> Requiere revisión previa</label></div>
+        <p id="editor-feedback" class="form-feedback" role="status" aria-live="polite"></p><button type="submit" id="save-product" class="button primary">Guardar cambios ↗</button>
+      </form>
+    </dialog>
+    <dialog id="delete-dialog" aria-labelledby="delete-title"><h2 id="delete-title">¿Eliminar este material?</h2><p id="delete-description"></p><p>Se retirará del inventario y de la web. Puedes ocultarlo si solo quieres dejar de ofrecerlo temporalmente.</p><div class="admin-actions"><button type="button" id="cancel-delete" class="button secondary">Cancelar</button><button type="button" id="confirm-delete" class="button danger">Eliminar material</button></div></dialog>
+  </main>
+  <footer class="wrap site-footer"><span>ChessDev / Administración</span><strong>Hecho por TopChess</strong></footer>
+  <noscript><p class="noscript-note">Activa JavaScript para iniciar sesión y gestionar el inventario.</p></noscript>
+</body>
+</html>
