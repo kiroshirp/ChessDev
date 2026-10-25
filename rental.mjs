@@ -67,12 +67,12 @@ export function prepareRequest({ quantities, pickup, returns, customer = '', clu
   if (!quote.units) throw new Error('Selecciona al menos una unidad de material.');
   const window = rentalWindow(pickup, returns, now);
   if (!customer.trim()) throw new Error('Indica tu nombre y apellidos.');
-  if (!club.trim()) throw new Error('Indica tu club o entidad.');
+  if (!club.trim()) throw new Error('Indica la entidad organizadora: club, federación, empresa u otra entidad.');
   if (customer.length > 100 || club.length > 160 || notes.length > 1000) throw new Error('El nombre, el club o las observaciones son demasiado largos.');
   const dateLabel = value => { const [date, time] = value.split('T'); return `${date.split('-').reverse().join('/')} a las ${time} (hora de Madrid)`; };
   return [
     `Hola ${CONTACT.name}, me gustaría solicitar material con ChessDev.`,
-    '', `Nombre y apellidos: ${customer.trim()}`, `Club o entidad: ${club.trim()}`, `Recogida: ${dateLabel(pickup)}`, `Devolución: ${dateLabel(returns)}`,
+    '', `Nombre y apellidos: ${customer.trim()}`, `Entidad organizadora: ${club.trim()}`, `Recogida: ${dateLabel(pickup)}`, `Devolución: ${dateLabel(returns)}`,
     `Duración solicitada: ${Number(window.hours.toFixed(2))} h (máximo 48 h).`,
     `Solicitud preparada: ${dateLabel(madridDateTime(now))}.`,
     'TopChess debe recibir la solicitud al menos 10 horas antes de la recogida. Comprobará el margen al recibir el mensaje y confirmará el horario; no se aceptan solicitudes con menos antelación.',

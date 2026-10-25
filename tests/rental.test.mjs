@@ -54,7 +54,7 @@ test('solicitud con material, fechas, observaciones y confirmación pendiente', 
   assert.match(text, /10 horas/);
   assert.match(text, /máximo 48 h/);
   assert.match(text, /Nombre y apellidos: Persona de prueba/);
-  assert.match(text, /Club o entidad: Club de ajedrez/);
+  assert.match(text, /Entidad organizadora: Club de ajedrez/);
   assert.match(text, /coste íntegro de un producto nuevo equivalente/);
   assert.doesNotMatch(text, /fianza/i);
   assert.match(text, /pendientes de confirmación/);
