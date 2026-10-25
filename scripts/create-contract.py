@@ -1,4 +1,4 @@
-"""Regenera el modelo imprimible; requiere reportlab. No es un contrato aprobado."""
+"""Regenera el modelo de contrato con estética grafito y controles marfil."""
 from pathlib import Path
 from reportlab.pdfgen import canvas
 from reportlab.lib.colors import HexColor
@@ -7,109 +7,112 @@ from reportlab.lib.utils import simpleSplit
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / 'assets' / 'contrato-chessdev.pdf'
 C = canvas.Canvas(str(OUT), pagesize=(595.28, 841.89))
-C.setTitle('ChessDev - Modelo de contrato de alquiler de material')
+C.setTitle('ChessDev - Modelo de contrato y reposición de material')
 C.setAuthor('TopChess')
-INK = HexColor('#1b2922')
-MUTED = HexColor('#62695f')
-LINE = HexColor('#d5d7cb')
-ORANGE = HexColor('#ec623d')
+BG, PANEL, INK, MUTED, EDGE, LIGHT = map(HexColor, ['#141419', '#202026', '#f3f3ed', '#bcbcc7', '#08080d', '#edede7'])
 
-def txt(x, y, text, size=10, bold=False, color=INK):
+def txt(x, y, text, size=10, bold=False, color=INK, mono=False):
     C.setFillColor(color)
-    C.setFont('Helvetica-Bold' if bold else 'Helvetica', size)
+    C.setFont('Courier' if mono else ('Helvetica-Bold' if bold else 'Helvetica'), size)
     C.drawString(x, y, text)
 
-def paragraph(text, y, width=495, size=9, leading=14):
+def paragraph(text, y, width=467, size=8.6, leading=13, color=MUTED):
     for line in simpleSplit(text, 'Helvetica', size, width):
-        txt(50, y, line, size)
+        txt(64, y, line, size, color=color)
         y -= leading
     return y
 
-def line(y, left=50, right=545):
-    C.setStrokeColor(LINE)
-    C.setLineWidth(.6)
-    C.line(left, y, right, y)
+def panel(y, height, label):
+    C.setFillColor(EDGE)
+    C.roundRect(41, y-6, 513, height, 18, fill=1, stroke=0)
+    C.setFillColor(PANEL)
+    C.setStrokeColor(HexColor('#414149'))
+    C.setLineWidth(1)
+    C.roundRect(41, y, 513, height, 18, fill=1, stroke=1)
+    txt(57, y+height-25, label, 9, True)
 
-def heading(label, y):
-    txt(50, y, label, 11, True)
-    line(y-10)
+def field(label, x, y, width, height=23):
+    txt(x, y+height+6, label, 7.5, color=MUTED)
+    C.setFillColor(EDGE)
+    C.roundRect(x, y-3, width, height, 6, fill=1, stroke=0)
+    C.setFillColor(LIGHT)
+    C.setStrokeColor(EDGE)
+    C.roundRect(x, y, width, height, 6, fill=1, stroke=1)
 
 def frame(page):
-    txt(50, 790, 'ChessDev.', 27, True)
-    txt(401, 792, 'HECHO POR TOPCHESS', 8, True)
-    C.setFillColor(ORANGE)
-    C.rect(50, 752, 495, 22, fill=1, stroke=0)
-    txt(61, 760, 'MODELO POR COMPLETAR Y REVISAR ANTES DE CONTRATAR', 8, True)
-    line(53)
-    txt(50, 37, 'TopChess - 613 133 823 - Solo mensajes. No atendemos llamadas.', 8, color=MUTED)
-    txt(505, 37, f'{page} / 2', 8, color=MUTED)
+    C.setFillColor(BG)
+    C.rect(0, 0, 595.28, 841.89, fill=1, stroke=0)
+    C.setFillColor(EDGE)
+    C.roundRect(41, 777, 42, 42, 11, fill=1, stroke=0)
+    C.setFillColor(LIGHT)
+    C.roundRect(41, 782, 42, 42, 11, fill=1, stroke=0)
+    txt(49, 795, 'CD', 16, True, color=EDGE)
+    txt(98, 797, 'CHESSDEV / TOPCHESS', 12, mono=True)
+    txt(42, 756, 'MODELO POR COMPLETAR Y REVISAR ANTES DE CONTRATAR', 8, mono=True, color=MUTED)
+    C.setStrokeColor(HexColor('#3c3c46'))
+    C.line(41, 49, 554, 49)
+    txt(41, 31, 'TopChess / 613 133 823 / Solo mensajes. No llamadas.', 7, color=MUTED)
+    txt(526, 31, f'{page} / 2', 7, color=MUTED)
 
 frame(1)
-txt(50, 719, 'Alquiler de material de ajedrez', 20, True)
-txt(50, 698, 'Referencia: ____________________     Lugar y fecha: __________________________', 9)
-heading('01 / Identificación de las partes', 665)
-for y, text in [
-    (638, 'Prestador (nombre o razón social): __________________________________________'),
-    (615, 'NIF: __________________  Domicilio fiscal: __________________________________'),
-    (592, 'Cliente / entidad: ________________________________________________________'),
-    (569, 'NIF / documento: ______________  Representante: _____________________________'),
-    (546, 'Contacto para mensajes: __________________________________________________')]: txt(50, y, text, 9)
-heading('02 / Recogida y devolución', 511)
-txt(50, 484, 'Recogida (fecha y hora): ______________  Devolución (fecha y hora): ______________', 9)
-txt(50, 461, 'Dirección acordada: ______________________________________________________', 9)
-txt(50, 440, 'Transporte a cargo del cliente. No hay envío ni horario confirmado sin acuerdo previo.', 8, color=MUTED)
-heading('03 / Inventario entregado y valor de reposición', 408)
-widths = [50, 220, 270, 400, 470, 545]
-C.setFillColor(HexColor('#e7eadf'))
-C.rect(50, 371, 495, 22, fill=1, stroke=0)
-for x, label in zip(widths, ['Material', 'Ud.', 'Estado / referencia', 'Alquiler', 'Reposición']): txt(x+7, 379, label, 8, True)
-names = ['Tablero normal', 'Juego de piezas', 'Reloj DGT Easy', 'Reloj Leap', 'Set plegable', 'Tablero mural', 'Ajedrez gigante']
-for i, name in enumerate(names):
-    y = 353 - i*23
-    txt(57, y, name, 8)
-    line(y-8)
-for x in widths: 
-    C.setStrokeColor(LINE)
-    C.line(x, 393, x, 207)
-heading('04 / Importe y fianza (completar antes de aceptar)', 177)
-txt(50, 150, 'Gestión urgente: 50 EUR     Material: __________ EUR     Impuestos: __________ EUR', 9)
-txt(50, 127, 'Total definitivo (impuestos incluidos): __________ EUR     Fianza: __________ EUR', 9)
-txt(50, 104, 'Forma y justificante de pago: ______________________________________________', 9)
-txt(50, 82, 'Más de 48 horas: presupuesto específico adjunto. La fianza se registra separadamente.', 8, color=MUTED)
+txt(41, 720, 'Material listo. Reglas claras.', 25, True)
+txt(42, 696, 'CONTRATO DE ALQUILER DE MATERIAL DE AJEDREZ', 9, mono=True, color=MUTED)
+panel(392, 278, '01 / IDENTIFICACIÓN DE LAS PARTES')
+field('Prestador: nombre o razón social', 57, 601, 481)
+field('NIF del prestador', 57, 554, 132)
+field('Domicilio fiscal del prestador', 201, 554, 337)
+field('Nombre y apellidos del cliente (obligatorio)', 57, 507, 273)
+field('NIF / documento del cliente', 342, 507, 196)
+field('Club o entidad (obligatorio)', 57, 460, 481)
+field('Contacto para mensajes', 57, 413, 222)
+field('Representante, si corresponde', 291, 413, 247)
+
+panel(231, 143, '02 / RESERVA, RECOGIDA Y DEVOLUCIÓN')
+field('Referencia de reserva', 57, 307, 222)
+field('Lugar y fecha de firma', 291, 307, 247)
+field('Recogida: fecha y hora', 57, 259, 222)
+field('Devolución: fecha y hora', 291, 259, 247)
+
+panel(73, 140, '03 / PRECIO Y ENTREGA')
+field('Dirección de recogida y devolución acordada', 57, 145, 481)
+txt(57, 126, 'Gestión urgente: 50 EUR + material. Más de 48 h: presupuesto específico.', 8)
+field('Total definitivo, impuestos incluidos (EUR)', 57, 88, 222)
+field('Pago: medio y justificante', 291, 88, 247)
 C.showPage()
 
 frame(2)
-txt(50, 718, 'Condiciones y comprobaciones', 20, True)
-y = 687
-for title, body in [
-    ('05 / Confirmación y entrega', 'La solicitud no confirma disponibilidad ni reserva. Antes de contratar se concretan material, precio total, fianza, dirección, horarios y condiciones. Ambas partes comprueban el inventario y su estado en la recogida y la devolución.'),
-    ('06 / Cuidado, daños y devolución de la fianza', 'El material se devuelve en el estado registrado, salvo desgaste normal o deterioros ajenos a la responsabilidad del cliente. Las pérdidas o daños imputables se valoran y documentan. La fianza no se pierde automáticamente en su totalidad; cualquier deducción debe justificarse.'),
-    ('07 / Cancelación y derechos aplicables', 'PENDIENTE DE DEFINIR Y REVISAR: incorporar antes de contratar las condiciones de cancelación, la información sobre desistimiento que corresponda y, cuando proceda, los consentimientos para comenzar el servicio. No se presume que la gestión urgente sea siempre no reembolsable.'),
+txt(41, 720, 'Lo recoges. Lo cuidas. Vuelve.', 24, True)
+panel(443, 247, '04 / INVENTARIO Y REPOSICIÓN A NUEVO')
+txt(57, 643, 'Completar y acordar todos los valores antes de firmar. Importes en EUR.', 8, color=MUTED)
+# Los campos claros facilitan completar el contrato a mano pese al diseño oscuro.
+C.setFillColor(LIGHT)
+C.roundRect(57, 461, 481, 167, 8, fill=1, stroke=0)
+columns = [57, 192, 221, 355, 421, 538]
+for x, label in zip(columns, ['Producto', 'Ud.', 'Estado / referencia', 'Alquiler', 'Nuevo / ud.']):
+    txt(x+6, 614, label, 7, True, color=EDGE)
+names = ['Tablero normal', 'Juego de piezas', 'Reloj DGT Easy', 'Reloj Leap', 'Set plegable', 'Tablero mural', 'Ajedrez gigante']
+C.setStrokeColor(HexColor('#b1b1b5'))
+C.setLineWidth(.5)
+for i, name in enumerate(names):
+    y = 594-i*19
+    txt(63, y, name, 7.3, color=EDGE)
+    C.line(57, y-6, 538, y-6)
+for x in columns[1:-1]: C.line(x, 461, x, 628)
+
+panel(212, 212, '05 / RESPONSABILIDAD Y REPOSICIÓN')
+y = 378
+for text in [
+    'El cliente se obliga a devolver todas las unidades en la fecha acordada y en el estado registrado. El inventario se comprueba con ambas partes al recoger y al devolver.',
+    'En caso de pérdida, falta de devolución tras requerimiento o daño irreparable imputable al cliente, este abonará el coste íntegro de reposición de la unidad afectada por un producto nuevo del mismo modelo o de características equivalentes. El valor por unidad se documentará y acordará en el inventario antes de contratar.',
+    'Los daños reparables imputables al cliente se liquidarán por el coste de reparación documentado. Se excluyen el desgaste normal y los deterioros ajenos a su responsabilidad. Toda reclamación deberá justificarse y respetar los derechos imperativos del cliente.',
 ]:
-    heading(title, y)
-    y = paragraph(body, y-27)
-    y -= 22
-txt(50, y, 'Condiciones particulares / anexo aceptado: __________________________________', 9)
-line(y-28)
-line(y-52)
-y -= 87
-heading('08 / Revisión, devolución y liquidación', y)
-y -= 28
-txt(50, y, 'Fecha y hora de devolución efectiva: ________________________________________', 9)
-txt(50, y-25, 'Estado / incidencias documentadas: _________________________________________', 9)
-txt(50, y-50, 'Fianza devuelta: __________ EUR     Deducción justificada: __________ EUR', 9)
-txt(50, y-75, 'Fecha y medio de devolución de fianza: ______________________________________', 9)
-y -= 117
-txt(50, y, 'Firma del prestador', 9, True)
-txt(320, y, 'Firma del cliente / representante', 9, True)
-line(y-48, 50, 255)
-line(y-48, 320, 545)
-y -= 76
-paragraph('Este documento es un modelo de trabajo, no un contrato definitivo aprobado. Completar los datos del prestador, revisar las condiciones y facilitar la información precontractual y de protección de datos aplicable antes de su utilización.', y, size=7.5, leading=11)
-txt(50, 91, 'Referencias para revisión: Código Civil, arts. 1561 y 1563; RDL 1/2007, arts. 97 y 102-108.', 7, color=MUTED)
-C.linkURL('https://www.boe.es/buscar/act.php?id=BOE-A-1889-4763', (50, 78, 270, 88), relative=0)
-txt(50, 80, 'BOE: Código Civil', 7, color=MUTED)
-C.linkURL('https://www.boe.es/buscar/act.php?id=BOE-A-2007-20555', (285, 78, 545, 88), relative=0)
-txt(285, 80, 'BOE: defensa de consumidores y usuarios', 7, color=MUTED)
+    y = paragraph(text, y)
+    y -= 7
+
+panel(67, 127, '06 / ACEPTACIÓN Y CONDICIONES PENDIENTES')
+paragraph('Antes de utilizar este modelo deben completarse los datos fiscales, los precios de reposición y las condiciones de cancelación, desistimiento y protección de datos. No se presume que los 50 EUR sean siempre no reembolsables. Adjuntar registro de devolución e incidencias.', 149, size=7.3, leading=11)
+field('Firma del prestador', 57, 83, 222, 22)
+field('Firma del cliente / representante', 291, 83, 247, 22)
+C.showPage()
 C.save()
-print(f'PDF creado: {OUT}')
+print(f'PDF actualizado: {OUT}')

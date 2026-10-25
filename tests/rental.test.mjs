@@ -31,13 +31,17 @@ test('fechas: mismo día, 48 horas y cambio de horario sin desfase', () => {
   assert.throws(() => rentalDays('', '2026-10-25'));
   assert.equal(localDate(new Date(2026, 9, 25, 0, 5)), '2026-10-25');
 });
-const valid = { quantities: { boards: 5, leap: 5 }, pickup: '2026-10-26', returns: '2026-10-27', customer: 'Club de ajedrez', notes: 'A partir de las 17:00' };
+const valid = { quantities: { boards: 5, leap: 5 }, pickup: '2026-10-26', returns: '2026-10-27', customer: 'Persona de prueba', club: 'Club de ajedrez', notes: 'A partir de las 17:00' };
 test('solicitud con material, fechas, observaciones y confirmación pendiente', () => {
   const text = prepareRequest(valid, '2026-10-25');
   assert.match(text, /5 × Tablero normal/);
   assert.match(text, /125,00/);
   assert.match(text, /26\/10\/2026/);
   assert.match(text, /17:00/);
+  assert.match(text, /Nombre y apellidos: Persona de prueba/);
+  assert.match(text, /Club o entidad: Club de ajedrez/);
+  assert.match(text, /coste íntegro de un producto nuevo equivalente/);
+  assert.doesNotMatch(text, /fianza/i);
   assert.match(text, /pendientes de confirmación/);
   const url = new URL(whatsappUrl(text));
   assert.equal(url.hostname, 'wa.me');
@@ -50,7 +54,7 @@ test('más de 48 horas solicita presupuesto sin prometer un total incorrecto', (
   assert.doesNotMatch(text, /Total estimado/);
 });
 test('no se preparan solicitudes vacías, pasadas, sin nombre o con fechas invertidas', () => {
-  for (const data of [{ quantities: {} }, { customer: '   ' }, { pickup: '2026-10-24' }, { returns: '2026-10-25' }, { pickup: '' }]) {
+  for (const data of [{ quantities: {} }, { customer: '   ' }, { club: '' }, { club: '   ' }, { club: 'x'.repeat(161) }, { pickup: '2026-10-24' }, { returns: '2026-10-25' }, { pickup: '' }]) {
     assert.throws(() => prepareRequest({ ...valid, ...data }, '2026-10-25'));
   }
 });
@@ -61,4 +65,7 @@ test('la web publica contacto por mensajes y recursos relativos compatibles con 
   assert.match(html, /Hecho por TopChess/);
   assert.doesNotMatch(html, /href="tel:/);
   assert.doesNotMatch(html, /(?:src|href)="\/(?!\/)/);
+  assert.doesNotMatch(html, /fianza/i);
+  assert.match(html, /id="customer"[^>]*required/);
+  assert.match(html, /id="club"[^>]*required/);
 });

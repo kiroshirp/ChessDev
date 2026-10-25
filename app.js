@@ -58,8 +58,8 @@ function updateEstimate() {
   byId('grand-total').textContent = custom ? 'A consultar' : euros(quote.total);
   byId('total-label').textContent = custom ? 'Presupuesto específico' : 'Total estimado';
   byId('duration-note').textContent = custom
-    ? 'Más de 48 horas: el material requiere una tarifa específica. Los precios por unidad mostrados corresponden a hasta 48 horas. Fianza e impuestos a confirmar.'
-    : 'Hasta 48 horas, con horas de recogida y devolución a acordar. Fianza no incluida. Importe e impuestos a confirmar en el presupuesto definitivo.';
+    ? 'Más de 48 horas: el material requiere una tarifa específica. Los precios por unidad mostrados corresponden a hasta 48 horas. Importe e impuestos a confirmar.'
+    : 'Hasta 48 horas, con horas de recogida y devolución a acordar. Importe e impuestos a confirmar en el presupuesto definitivo.';
   for (const product of PRODUCTS) {
     form.querySelector(`[data-product="${product.id}"][data-step="-1"]`).disabled = quantities[product.id] <= 0;
     form.querySelector(`[data-product="${product.id}"][data-step="1"]`).disabled = quantities[product.id] >= product.max;
@@ -84,7 +84,7 @@ function validatedRequest() {
   updateEstimate();
   if (!form.reportValidity()) return null;
   try {
-    return prepareRequest({ quantities, pickup: pickup.value, returns: returns.value, customer: byId('customer').value, notes: byId('notes').value }, today);
+    return prepareRequest({ quantities, pickup: pickup.value, returns: returns.value, customer: byId('customer').value, club: byId('club').value, notes: byId('notes').value }, today);
   } catch (error) {
     feedback.textContent = error.message;
     if (!calculate(quantities).units) byId('qty-boards').focus();

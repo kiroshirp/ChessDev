@@ -46,24 +46,26 @@ export function calculate(quantities) {
   return { units, material, total: MANAGEMENT_FEE + material, selected };
 }
 
-export function prepareRequest({ quantities, pickup, returns, customer, notes = '' }, today = localDate()) {
+export function prepareRequest({ quantities, pickup, returns, customer = '', club = '', notes = '' }, today = localDate()) {
   const quote = calculate(quantities);
   if (!quote.units) throw new Error('Selecciona al menos una unidad de material.');
   const days = rentalDays(pickup, returns);
   if (dayNumber(pickup) < dayNumber(today)) throw new Error('La recogida no puede ser en una fecha pasada.');
-  if (!customer.trim()) throw new Error('Indica tu nombre o entidad.');
-  if (customer.length > 100 || notes.length > 1000) throw new Error('El nombre o las observaciones son demasiado largos.');
+  if (!customer.trim()) throw new Error('Indica tu nombre y apellidos.');
+  if (!club.trim()) throw new Error('Indica tu club o entidad.');
+  if (customer.length > 100 || club.length > 160 || notes.length > 1000) throw new Error('El nombre, el club o las observaciones son demasiado largos.');
   const dateLabel = iso => iso.split('-').reverse().join('/');
   const custom = days > 2;
   return [
     `Hola ${CONTACT.name}, me gustaría solicitar material con ChessDev.`,
-    '', `Nombre o entidad: ${customer.trim()}`, `Recogida: ${dateLabel(pickup)}`, `Devolución: ${dateLabel(returns)}`,
+    '', `Nombre y apellidos: ${customer.trim()}`, `Club o entidad: ${club.trim()}`, `Recogida: ${dateLabel(pickup)}`, `Devolución: ${dateLabel(returns)}`,
     '', 'Material solicitado:', ...quote.selected.map(product => `- ${product.quantity} × ${product.name} (${euros(product.price)}/ud. para hasta 48 h)`),
     '', `Gestión urgente: ${euros(MANAGEMENT_FEE)}`,
     ...(custom ? ['Duración superior a 48 horas: solicito presupuesto específico.'] : [`Material: ${euros(quote.material)}`, `Total estimado: ${euros(quote.total)}`]),
-    'Fianza no incluida. Importe, impuestos, disponibilidad y horario pendientes de confirmación.',
+    'Importe, impuestos, disponibilidad y horario pendientes de confirmación.',
+    'Reposición: pérdida, no devolución o daño irreparable imputable al cliente implica abonar el coste íntegro de un producto nuevo equivalente, con valor documentado y acordado antes de contratar. Daños reparables: coste de reparación. Se excluye el desgaste normal.',
     ...(notes.trim() ? ['', `Observaciones: ${notes.trim()}`] : []),
-    '', 'Por favor, confirmad el presupuesto, la fianza, las condiciones y la dirección de recogida por mensaje.',
+    '', 'Por favor, confirmad el presupuesto, los valores de reposición a nuevo, las condiciones y la dirección de recogida por mensaje.',
   ].join('\n');
 }
 

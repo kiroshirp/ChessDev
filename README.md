@@ -18,9 +18,13 @@ La vista local se sirve en http://127.0.0.1:4173/ChessDev/. El sitio compilado q
 
 ## Solicitudes y condiciones
 
-El cliente elige cantidades y fechas, indica su nombre y prepara el resumen en WhatsApp. Debe revisarlo y enviarlo allí. La web no confirma reservas ni realiza cobros y no almacena datos personales. La opción de copiar permite compartir el mismo resumen manualmente.
+El cliente elige cantidades y fechas, indica por separado su nombre y apellidos y su club o entidad (ambos obligatorios) y prepara el resumen en WhatsApp. Debe revisarlo y enviarlo allí. La web no confirma reservas ni realiza cobros y no almacena datos personales. La opción de copiar permite compartir el mismo resumen manualmente.
 
-50 € de gestión urgente + alquiler por unidad para hasta 48 horas. Fianza aparte e importe e impuestos a confirmar. Las solicitudes de más de 48 horas requieren presupuesto específico. Disponibilidad, horario, dirección, fianza, pago y condiciones se acuerdan por mensaje antes de confirmar.
+50 € de gestión urgente + alquiler por unidad para hasta 48 horas. Importe e impuestos a confirmar. No se cobra fianza. Las solicitudes de más de 48 horas requieren presupuesto específico. Disponibilidad, horario, dirección, valores de reposición, pago y condiciones se acuerdan por mensaje antes de confirmar.
+
+La pérdida, no devolución o daño irreparable imputable al cliente implica abonar el coste íntegro de un producto nuevo equivalente, con valor documentado y acordado antes de contratar. Los daños reparables se liquidan por su coste de reparación; el desgaste normal queda excluido.
+
+Diseño en grafito con controles claros en relieve, inspirado en la referencia del usuario, compartido con el contrato. Los ajustes de tema se encuentran en `theme.css`.
 
 El catálogo y sus inventarios máximos se editan en `rental.mjs`. El inventario no está conectado a reservas ni a las clases de TopChess; revisar existencias antes de aceptar. La dirección del local no se publica porque todavía no se ha facilitado.
 
