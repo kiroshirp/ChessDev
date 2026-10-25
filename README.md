@@ -1,36 +1,33 @@
-# ChessDev
+# ChessDev · Hecho por TopChess
 
-Plataforma de ajedrez en español con la identidad visual de ChessDev: antracita, marfil, tipografía marcada y tarjetas con sombras. Sustituye la experiencia pública de PixelSpace. Repositorio ChessDev y web pública en https://kiroshirp.github.io/ChessDev/. Se conserva el historial y la infraestructura de cuentas y partidas existente.
+Alquiler urgente de material de ajedrez. Landing estática en español, adaptable a móvil, sin registro y sin dependencias de producción.
 
-## Funciones disponibles
+**Contacto: TopChess · 613 133 823. Solo mensajes. No atendemos llamadas.**
 
-- Editor de estudios PGN con variantes, comentarios, símbolos, FEN, reproducción y exportación.
-- Aprendizaje del repertorio propio por color y repaso espaciado SM2 con fechas reales.
-- Problemas del diario de Lichess, importación CSV CC0 y ejercicios obtenidos de errores propios; fuentes visibles.
-- Ciclos Woodpecker con colección fija, tiempo y errores medidos.
-- Stockfish.js 19 Lite en Web Worker: análisis de posición y partida completa, resumen, gráfico y revisión de errores. Profundidad y criterios explícitos; sin precisión inventada.
-- Estudios y entrenamiento locales; exportación PGN, sin sincronización entre equipos.
-- Mesa amistosa autoritativa, dos jugadores, espectadores, tablas, rendición e historial persistido en D1; sin reloj ni Elo.
-- Lichess obligatorio para juego público; herramientas locales gratuitas sin cuenta. Identidades de prueba solo en loopback y desarrollo.
+## Uso
 
-Sin tienda, pagos, clasificaciones simuladas ni entrenador conversacional. No hay catálogo de cursos completos. Ver [comparación funcional y límites](docs/chessflare-parity.md). Stockfish se distribuye sin modificar bajo GPL3 con [código correspondiente y licencia](apps/web/public/engine/SOURCE.txt).
+Con Node.js 22 o superior:
 
-## Desarrollo
+```sh
+npm run dev
+npm run check
+npm run build
+```
 
-Node 24.x y npm 11.x. Ejecuta `npm ci`, copia `.env.example` a `.env` si no existe y arranca `npm run dev`. Web: http://127.0.0.1:5173; API: 3001; servidor de partidas: 2567.
+La vista local se sirve en http://127.0.0.1:4173/ChessDev/. El sitio compilado queda en `dist/`; solo se publican los archivos públicos.
 
-Para jugar con dos clientes locales, abre dos contextos independientes, entra en Jugar con nombres de pruebas distintos, abre la mesa y elige un color en cada cliente.
+## Solicitudes y condiciones
 
-## Validación
+El cliente elige cantidades y fechas, indica su nombre y prepara el resumen en WhatsApp. Debe revisarlo y enviarlo allí. La web no confirma reservas ni realiza cobros y no almacena datos personales. La opción de copiar permite compartir el mismo resumen manualmente.
 
-`npm run check`: TypeScript, lint, pruebas unitarias y builds.
-`npm run test:e2e`: dos clientes, partida hasta mate, historial, PGN, persistencia local, entrenamiento y móvil.
-`npm run test:pages`: comprobación de producción bajo `/ChessDev/` después de compilar con `VITE_BASE_PATH=/ChessDev/`.
+50 € de gestión urgente + alquiler por unidad para hasta 48 horas. Fianza aparte e importe e impuestos a confirmar. Las solicitudes de más de 48 horas requieren presupuesto específico. Disponibilidad, horario, dirección, fianza, pago y condiciones se acuerdan por mensaje antes de confirmar.
 
-## Infraestructura gratuita
+El catálogo y sus inventarios máximos se editan en `rental.mjs`. El inventario no está conectado a reservas ni a las clases de TopChess; revisar existencias antes de aceptar. La dirección del local no se publica porque todavía no se ha facilitado.
 
-GitHub Pages para frontend, Render Free para Colyseus y Cloudflare Worker/D1 Free para cuentas, OAuth e historial. API pública: `https://pixelspace-world.onrender.com/api`. No activar facturación. [Configuración](docs/free-hosting.md), [decisiones](docs/decisions.md), [verificaciones](docs/verification.md).
+`assets/contrato-chessdev.pdf` es un modelo para completar y revisar antes de utilizarlo. Faltan los datos fiscales del prestador, los términos de cancelación y desistimiento y las condiciones particulares. Su descarga no supone contratación ni aprobación jurídica.
 
-El servidor conserva los módulos de mapas y movimiento como infraestructura interna ya probada. La web nueva no carga Phaser ni muestra el mundo virtual. No se han borrado usuarios ni resultados existentes. Secretos solo en el servidor; nunca en Git o variables `VITE_*`.
+## Publicación
 
-[Especificación vigente](docs-specification.es.md). Licencias originales conservadas; no se reutilizan marcas ni recursos de ChessFlare.
+Un cambio en `main` ejecuta comprobaciones, genera `dist/` y publica en https://kiroshirp.github.io/ChessDev/ mediante GitHub Actions. Todas las rutas públicas son relativas para funcionar bajo `/ChessDev/`.
+
+Este proyecto sustituye el contenido anterior del repositorio conservando el historial Git. No utiliza los anteriores servidores, bases de datos, Lichess, Firebase ni Render. La sustitución del código no elimina esos recursos externos.

@@ -1,7 +1,13 @@
-# ChessDev — instrucciones permanentes
+# ChessDev
 
-La especificación permanente es `docs-specification.es.md`; las decisiones posteriores en `docs/decisions.md` prevalecen cuando la modifican. El producto actual es ChessDev, plataforma de ajedrez; sustituye la experiencia de mundo virtual PixelSpace. Priorizar entrenamiento real, PGN, multijugador autoritativo y ajedrez legal comprobados con dos clientes. Mantener historial Git, URLs e infraestructura reutilizable. Core no depende del ajedrez. No crear controles falsos ni declarar pruebas no ejecutadas. No implementar pagos, Elo o IA simulados.
+Web pública de alquiler urgente de material de ajedrez, hecha por TopChess. Sustituye por petición expresa del usuario la anterior plataforma de entrenamiento. No restaurar el producto anterior ni sus servicios.
 
-Acceso público obligatorio con Lichess. Base de datos: Cloudflare D1, API/OAuth en Worker. El usuario exige empezar sin cargos ni facturación: no activar Blaze, Containers ni servicios pagados. Destino confirmado: Render Free para Colyseus y GitHub Pages para frontend. Cloud Run en Firebase pixelspace-93730 queda aplazado. El usuario autoriza desplegar la web una vez conectado y verificado el conjunto (docs/free-hosting.md). Nunca subir secretos, bases locales ni credenciales. Identidades de desarrollo limitadas a loopback, nunca producción. Comprobar TypeScript, lint, tests, build y E2E antes de publicar; documentar infraestructura no verificada. No delegar a subagentes sin petición explícita.
-
-Acceso público del API a través de `https://pixelspace-world.onrender.com/api`; Render reenvía solo rutas públicas permitidas al Worker, sin mover D1 ni los secretos internos. Lichess usa PKCE, sin client secret. Callback OAuth en `https://kiroshirp.github.io/ChessDev/`; state/verifier PKCE transitorios en la pestaña, sin depender de cookies de Render. Esta red no alcanza workers.dev directamente; mantener el upstream del servidor en Cloudflare y no exponer `/internal` en el proxy.
+- Responder en español y mantener la solución estática, accesible y sin dependencias de producción.
+- Publicación: GitHub Pages en https://kiroshirp.github.io/ChessDev/ mediante .github/workflows/pages.yml.
+- Contacto confirmado: TopChess, 613 133 823. SOLO MENSAJES. NO LLAMADAS. Las solicitudes se preparan en WhatsApp; el visitante debe pulsar enviar allí.
+- No inventar dirección, existencias en tiempo real, atención 24 h, disponibilidad garantizada ni confirmaciones automáticas.
+- Precios: 50 € de gestión por solicitud confirmada + material; fianza aparte. Más de 48 h requiere presupuesto específico. Impuestos a confirmar en el presupuesto definitivo.
+- Catálogo, precios, inventario y contacto: rental.mjs. El inventario es máximo orientativo y se verifica manualmente.
+- El PDF es un modelo por completar y revisar, no un contrato definitivo aprobado.
+- Validar con npm run check y npm run build. Las pruebas de navegador deben comprobar móvil, cantidades, fechas y texto del enlace WhatsApp sin enviar mensajes.
+- No modificar credenciales, infraestructura anterior, servicios externos ni datos de clientes. No añadir analítica, pagos ni cuentas sin solicitud.
