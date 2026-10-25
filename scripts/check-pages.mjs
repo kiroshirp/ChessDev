@@ -49,7 +49,7 @@ try {
   // must continue rejecting localhost; a production smoke must exercise CORS
   // with the same origin visitors use on Pages.
   const publicUrl = 'https://kiroshirp.github.io/ChessDev/';
-  await page.route(`${publicUrl}**`, async (route) => {
+  await page.context().route(`${publicUrl}**`, async (route) => {
     const asset = new URL(route.request().url());
     const response = await route.fetch({
       url: `http://127.0.0.1:4175${asset.pathname}${asset.search}`,
@@ -78,10 +78,14 @@ try {
   await expect(page.getByRole('button', { name: 'Abrir mesa compartida' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Tablero de análisis', exact: true }).click();
   await expect(page.getByRole('group', { name: 'Tablero de ajedrez' })).toBeVisible();
+  await page.getByRole('button', { name: 'Analizar posición', exact: true }).click();
+  await expect(page.getByTestId('engine-evaluation')).toContainText('Mejor continuación', {
+    timeout: 45000,
+  });
   await page.waitForLoadState('networkidle', { timeout: 95000 });
   assert.deepEqual(errors, []);
   console.log(
-    'ChessDev production smoke: /ChessDev/, assets, Lichess required for online play, local analysis, no development bypass and no browser errors: OK',
+    'ChessDev production smoke: /ChessDev/, assets, Lichess required for online play, real Stockfish under /ChessDev/, no development bypass and no browser errors: OK',
   );
 } finally {
   await browser?.close();

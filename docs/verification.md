@@ -17,3 +17,13 @@ Corrección móvil: 31 pruebas unitarias y 8 E2E aprobados localmente, incluyend
 Servicios de la corrección móvil verificados: Worker 09985e12-9ba7-46b2-937b-d3e22c4b4a10 publicado, proxy Render actualizado desde 83ee762 y prueba pública aprobada (start OAuth 200, redirección al frontend 302, internos y acceso antiguo 404). CI de la rama aprobado (40003739167). Sin cambios de esquema ni datos.
 
 Frontend móvil publicado y verificado en https://kiroshirp.github.io/ChessDev/: workflow 40004293034 aprobado (check, 8 E2E, infraestructura pública, smoke y deploy). La web pública muestra las piezas SVG compartidas y el botón del nuevo flujo Lichess. Se mantienen pendientes únicamente la autorización con cuenta real y la comprobación en el teléfono físico del usuario.
+
+## Ampliación funcional del 25 de octubre de 2026
+
+Sustituidos los cuatro falsos cursos y la colección predeterminada de tres mates por herramientas conectadas a estudios y datos reales. Editor PGN con árbol/variantes/comentarios/NAG/FEN; aprendizaje por color con respuestas automáticas; SM2 con fechas, facilidad y resultados; problemas del diario Lichess/CSV CC0; Woodpecker con colección fija, ciclos, errores y tiempos medidos. Stockfish.js 19 Lite oficial en Worker local para posición, partida, gráfico, errores y ejercicios derivados. Se conserva licencia GPL3 y acceso al código correspondiente; no se ha activado ningún servicio pagado.
+
+Validación local final: TypeScript, lint, 40 pruebas unitarias y build aprobados. Diez E2E aprobados: las regresiones de protocolo, dos clientes hasta mate y resultado persistido, OAuth móvil simulado sin cookies, variantes/persistencia, aprendizaje de un color y fecha SM2, problema diario real con respuesta fijada, ciclos Woodpecker medidos, Stockfish WASM real con mate, cancelación/reinicio de revisión y datos calculados. Capturas de editor a 320/390/430 px y escritorio revisadas; las doce piezas SVG coinciden.
+
+Build de producción con base `/ChessDev/`, URLs públicas y smoke de navegador aprobado, incluyendo descarga/ejecución real del motor bajo esa ruta y ausencia de errores. Primer intento detectó expiración de la petición anónima `/auth/me` durante reposo de Render; comprobación pública posterior aprobó todos los endpoints esperados y el smoke con servidor despierto pasó. El arranque en frío sigue sujeto a Render Free. No se ha cambiado backend, secretos, esquemas D1 ni infraestructura.
+
+Límites actuales en `chessflare-parity.md`: entrenamiento local sin sincronización entre dispositivos, sin catálogo de cursos completos, entrenador conversacional ni emparejamiento/reloj/rating. La prueba OAuth usa proveedor simulado; consentimiento real y Safari en teléfono físico siguen pendientes. No se afirma paridad completa.

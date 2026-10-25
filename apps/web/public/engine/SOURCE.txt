@@ -1,0 +1,8 @@
+Stockfish.js 19.0.1, lite single-threaded, unmodified upstream release.
+License: GNU GPL v3, see COPYING.txt.
+Binary release: https://github.com/nmrugg/stockfish.js/releases/tag/v19.0.1
+Corresponding source and build scripts: https://github.com/nmrugg/stockfish.js/tree/v19.0.1
+Source archive: https://github.com/nmrugg/stockfish.js/archive/refs/tags/v19.0.1.zip
+Build instructions: upstream README.md and build.js in that source archive.
+ChessDev application source: https://github.com/kiroshirp/ChessDev
+This engine runs as a separate Web Worker using the UCI protocol.

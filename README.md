@@ -4,15 +4,16 @@ Plataforma de ajedrez en español con la identidad visual de ChessDev: antracita
 
 ## Funciones disponibles
 
-- Panel con accesos a entrenamiento, estudios, partidas y cursos.
-- Cuatro líneas introductorias de aperturas, legales y verificadas jugada a jugada.
-- Colección original de tres problemas de mate, pistas, repaso y repetición Woodpecker.
-- Tablero legal con selección de promoción, giro, importación/exportación PGN y reproducción de partidas. No incluye evaluación de motor.
-- Estudios y progreso guardados en el navegador. Exportación PGN para copias de seguridad; no se sincronizan entre equipos.
-- Partidas amistosas en mesa compartida: blancas, negras, espectadores, reglas autoritativas, tablas, rendición e historial persistido en D1. Sin reloj ni Elo.
-- Lichess obligatorio para juego público; las herramientas locales se pueden explorar sin cuenta. Identidades de pruebas solo en loopback y desarrollo.
+- Editor de estudios PGN con variantes, comentarios, símbolos, FEN, reproducción y exportación.
+- Aprendizaje del repertorio propio por color y repaso espaciado SM2 con fechas reales.
+- Problemas del diario de Lichess, importación CSV CC0 y ejercicios obtenidos de errores propios; fuentes visibles.
+- Ciclos Woodpecker con colección fija, tiempo y errores medidos.
+- Stockfish.js 19 Lite en Web Worker: análisis de posición y partida completa, resumen, gráfico y revisión de errores. Profundidad y criterios explícitos; sin precisión inventada.
+- Estudios y entrenamiento locales; exportación PGN, sin sincronización entre equipos.
+- Mesa amistosa autoritativa, dos jugadores, espectadores, tablas, rendición e historial persistido en D1; sin reloj ni Elo.
+- Lichess obligatorio para juego público; herramientas locales gratuitas sin cuenta. Identidades de prueba solo en loopback y desarrollo.
 
-No se simulan usuarios conectados, clasificaciones, notificaciones ni estadísticas. No hay tienda, pagos, análisis automático ni entrenadores IA.
+Sin tienda, pagos, clasificaciones simuladas ni entrenador conversacional. No hay catálogo de cursos completos. Ver [comparación funcional y límites](docs/chessflare-parity.md). Stockfish se distribuye sin modificar bajo GPL3 con [código correspondiente y licencia](apps/web/public/engine/SOURCE.txt).
 
 ## Desarrollo
 

@@ -4,6 +4,7 @@ export default tseslint.config(
   {
     ignores: [
       '**/dist/**',
+      'apps/web/public/engine/**',
       '**/dist-worker/**',
       '**/.wrangler/**',
       '**/node_modules/**',

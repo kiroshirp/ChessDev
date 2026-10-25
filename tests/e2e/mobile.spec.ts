@@ -8,9 +8,12 @@ test('móvil: las doce piezas vectoriales son idénticas a escritorio', async ({
     b = await mobile.newPage();
   await a.goto('/');
   await b.goto('/');
+  await a.getByRole('button', { name: 'Mis estudios', exact: true }).click();
+  await b.getByRole('button', { name: 'Abrir menú' }).click();
+  await b.getByRole('button', { name: 'Mis estudios', exact: true }).click();
   const assets = async (page: typeof a) =>
     page
-      .locator('.mini-board svg[data-piece]')
+      .locator('.board svg[data-piece]')
       .evaluateAll((elements) =>
         Object.fromEntries(elements.map((e) => [e.getAttribute('data-piece'), e.innerHTML])),
       );
@@ -19,7 +22,7 @@ test('móvil: las doce piezas vectoriales son idénticas a escritorio', async ({
   await expect(b.locator('.mobile-brand')).toBeVisible();
   for (const width of [320, 390, 430]) {
     await b.setViewportSize({ width, height: 844 });
-    const board = await b.locator('.mini-board .board').boundingBox();
+    const board = await b.locator('.board').boundingBox();
     expect(board!.width).toBeGreaterThanOrEqual(Math.min(300, width - 74));
     expect(await b.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     if (!process.env.CI)
