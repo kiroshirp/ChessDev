@@ -5,7 +5,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const dist = resolve(root, 'dist');
 let privatePassword = '';
 try { privatePassword = (await readFile(resolve(root, '.env'), 'utf8')).match(/^ADMIN_PASSWORD=(.+)$/m)?.[1]?.trim() || ''; } catch {}
-const forbidden = new Set(['.env','.env.example','firebase.json','database.rules.json','.firebaserc','seed-admin.mjs','SECURITY.md']);
+const forbidden = new Set(['.env','.env.example','firebase.json','database.rules.json','.firebaserc','seed-admin.mjs','SECURITY.md','catalog-api.mjs','operations-api.mjs','firebase-config.mjs','admin.js','admin-orders.mjs','orders.mjs','order-pdf.mjs','database.disabled.rules.json']);
 async function inspect(dir) {
   for (const entry of await readdir(dir, { withFileTypes: true })) {
     if (entry.name.startsWith('.') && entry.name !== '.nojekyll' || forbidden.has(entry.name)) throw new Error('Se ha incluido un archivo privado o de configuración en la web.');

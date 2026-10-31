@@ -1,7 +1,7 @@
 {
   "database": {
     "instance": "chessdev-topchess-default-rtdb",
-    "rules": "database.rules.json"
+    "rules": "database.disabled.rules.json"
   },
   "auth": {
     "authorizedDomains": [
@@ -12,8 +12,8 @@
       "chessdev-topchess.web.app"
     ],
     "providers": {
-      "emailPassword": true,
-      "anonymous": true
+      "emailPassword": false,
+      "anonymous": false
     }
   }
 }

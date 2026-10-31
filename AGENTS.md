@@ -1,3 +1,5 @@
+> Estado actual (31/10/2026): pedidos, reservas, administración y conexiones desactivados por petición del usuario. Catálogo estático informativo; Firebase deniega lecturas/escrituras y proveedores de acceso deshabilitados. Datos y credenciales conservados. No reactivar sin autorización. El resto describe la implementación anterior.
+
 # ChessDev
 
 Web pública de alquiler urgente de material de ajedrez, hecha por TopChess. Sustituye por petición expresa del usuario la anterior plataforma de entrenamiento. No restaurar el producto anterior ni sus servicios.

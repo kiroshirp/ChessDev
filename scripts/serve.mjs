@@ -6,7 +6,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const base = resolve(root, process.env.SERVE_DIST === '1' ? 'dist' : '.');
 const port = Number(process.env.PORT || 4173);
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.pdf': 'application/pdf' };
-const publicFiles = new Set(['index.html','admin.html','styles.css','theme.css','app.js','rental.mjs','inventory.mjs','catalog-api.mjs','firebase-config.mjs','routing.mjs','admin.js','admin.css','admin-orders.mjs','orders.mjs','operations-api.mjs','order-pdf.mjs','admin/index.html','material/index.html','como-funciona/index.html','solicitud/index.html']);
+const publicFiles = new Set(['index.html','admin.html','styles.css','theme.css','app.js','catalog-static.mjs','rental.mjs','inventory.mjs','catalog-api.mjs','firebase-config.mjs','routing.mjs','admin.js','admin.css','admin-orders.mjs','orders.mjs','operations-api.mjs','order-pdf.mjs','admin/index.html','material/index.html','como-funciona/index.html','solicitud/index.html']);
 createServer(async (req, res) => {
   try {
     let path = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);

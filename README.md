@@ -1,3 +1,5 @@
+> Estado actual (31/10/2026): pedidos, reservas, administración y conexiones desactivados por petición del usuario. Catálogo estático informativo; Firebase deniega lecturas/escrituras y proveedores de acceso deshabilitados. Datos y credenciales conservados. No reactivar sin autorización. El resto describe la implementación anterior.
+
 # ChessDev · Hecho por TopChess
 
 Web de alquiler urgente de ajedrez con administración privada del inventario.

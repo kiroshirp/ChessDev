@@ -1,3 +1,5 @@
+> Estado actual (31/10/2026): pedidos, reservas, administración y conexiones desactivados por petición del usuario. Catálogo estático informativo; Firebase deniega lecturas/escrituras y proveedores de acceso deshabilitados. Datos y credenciales conservados. No reactivar sin autorización. El resto describe la implementación anterior.
+
 # Límites de la administración
 
 - La gestión privada, las reservas, los pagos registrados, las actas y el inventario se escriben solo con el UID de administrador verificado por Firebase. La condición de usuario en el navegador no concede permisos. La ampliación de la gestión a la raíz privada responde a la solicitud expresa de gestionar solicitudes y reservas conjuntamente.

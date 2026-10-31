@@ -7,7 +7,7 @@ const dist = resolve(root, 'dist');
 // This script owns only the generated dist directory inside this project.
 await rm(dist, { recursive: true, force: true });
 await mkdir(dist, { recursive: true });
-const publicSources=['index.html','styles.css','theme.css','app.js','rental.mjs','inventory.mjs','catalog-api.mjs','firebase-config.mjs','routing.mjs','admin.js','admin.css','admin.html','orders.mjs','operations-api.mjs','admin-orders.mjs','order-pdf.mjs'];
+const publicSources=['index.html','styles.css','theme.css','app.js','catalog-static.mjs','inventory.mjs','routing.mjs','admin.html'];
 const sourceData=await Promise.all(publicSources.map(name=>readFile(resolve(root,name),'utf8')));
 const version=createHash('sha256').update(sourceData.join('\n')).digest('hex').slice(0,12);
 function versioned(text) {
@@ -16,7 +16,7 @@ function versioned(text) {
 }
 for(const name of publicSources)await writeFile(resolve(dist,name),versioned(await readFile(resolve(root,name),'utf8')));
 for (const name of ['assets']) {
-  await cp(resolve(root, name), resolve(dist, name), { recursive: true });
+  await cp(resolve(root, name), resolve(dist, name), { recursive: true, filter: path => !path.includes('vendor') });
 }
 await cp(resolve(root, '.nojekyll'), resolve(dist, '.nojekyll'));
 const page = versioned(await readFile(resolve(root, 'index.html'), 'utf8'));
